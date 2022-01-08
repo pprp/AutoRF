@@ -26,7 +26,7 @@ import utils.utils as utils
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
-    "--data", type=str, default="./data", help="location of the data corpus"
+    "--data", type=str, default="~/data", help="location of the data corpus"
 )
 parser.add_argument("--model_name", type=str, default="ResNet20", help="backbone")
 parser.add_argument("--batch_size", type=int, default=128, help="batch size")

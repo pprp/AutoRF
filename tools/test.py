@@ -3,6 +3,9 @@ import sys
 import glob
 import numpy as np
 import torch
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import utils.utils as utils
 import logging
 import argparse
@@ -40,7 +43,7 @@ parser.add_argument("--layers", type=int, default=20, help="total number of laye
 parser.add_argument(
     "--model_path",
     type=str,
-    default="search-EXP-20191220-160515/weights.pt",
+    default="exps/search-EXP-20191220-160515/weights.pt",
     help="path of pretrained model",
 )
 parser.add_argument(

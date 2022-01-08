@@ -15,6 +15,8 @@ AUTOLA_PRIMITIVES = [
 ]
 
 FULLPOOL_PRIMITIVES = [
+    "none",
+    "skip_connect",
     "max_pool_3x3",
     "max_pool_5x5",
     "max_pool_7x7",
@@ -24,6 +26,8 @@ FULLPOOL_PRIMITIVES = [
 ]
 
 FULLCONV_PRIMITIVES = [
+    "none",
+    "skip_connect",
     "dil_conv_3x3",
     "dil_conv_3x3_spatial",
     "dil_conv_5x5",
@@ -100,7 +104,7 @@ SE_OPS = {
 
 DECOMPOSE_OPS = {
     # 分解卷积 3x3 192
-    "conv_3x1_1x3": lambda C, stride: nn.Sequential(
+    "conv_3x1_1x3": lambda C, stride, affine: nn.Sequential(
         nn.ReLU(inplace=False),
         nn.Conv2d(
             C, C, (1, 3), stride=(1, stride), padding=(0, 1), bias=False, groups=C // 4
@@ -108,10 +112,10 @@ DECOMPOSE_OPS = {
         nn.Conv2d(
             C, C, (3, 1), stride=(stride, 1), padding=(1, 0), bias=False, groups=C // 4
         ),
-        nn.BatchNorm2d(C, affine=False),
+        nn.BatchNorm2d(C, affine=affine),
     ),
     # 分解卷积 5x5 320
-    "conv_5x1_1x5": lambda C, stride: nn.Sequential(
+    "conv_5x1_1x5": lambda C, stride, affine: nn.Sequential(
         nn.ReLU(inplace=False),
         nn.Conv2d(
             C, C, (1, 5), stride=(1, stride), padding=(0, 2), bias=False, groups=C // 4
@@ -119,7 +123,7 @@ DECOMPOSE_OPS = {
         nn.Conv2d(
             C, C, (5, 1), stride=(stride, 1), padding=(2, 0), bias=False, groups=C // 4
         ),
-        nn.BatchNorm2d(C, affine=False),
+        nn.BatchNorm2d(C, affine=affine),
     ),
 }
 
@@ -130,18 +134,18 @@ AVGPOOL_OPS = {
     #     nn.Conv2d(C, C, 3, 1, 1, bias=False, groups=C // 4),
     #     nn.BatchNorm2d(C, affine=False),
     # ),
-    "avg_pool_3x3": lambda C, K: nn.Sequential(
-        nn.AvgPool2d(K, stride=1, padding=K // 2),
+    "avg_pool_3x3": lambda C, stride, affine: nn.Sequential(
+        nn.AvgPool2d(3, stride=1, padding=1),
         nn.Conv2d(C, C, 3, 1, 1, bias=False, groups=C // 4),
         nn.BatchNorm2d(C, affine=False),
     ),
-    "avg_pool_5x5": lambda C, K: nn.Sequential(
-        nn.AvgPool2d(K, stride=1, padding=K // 2),
+    "avg_pool_5x5": lambda C, stride, affine: nn.Sequential(
+        nn.AvgPool2d(5, stride=1, padding=2),
         nn.Conv2d(C, C, 3, 1, 1, bias=False, groups=C // 4),
         nn.BatchNorm2d(C, affine=False),
     ),
-    "avg_pool_7x7": lambda C, K: nn.Sequential(
-        nn.AvgPool2d(K, stride=1, padding=K // 2),
+    "avg_pool_7x7": lambda C, stride, affine: nn.Sequential(
+        nn.AvgPool2d(7, stride=1, padding=3),
         nn.Conv2d(C, C, 3, 1, 1, bias=False, groups=C // 4),
         nn.BatchNorm2d(C, affine=False),
     ),
@@ -165,7 +169,7 @@ OPS = {
         C, C, 3, 1, padding=N, dilation=N, groups=C // 4
     ),
     # Strip Pooling 232
-    "strippool": lambda C: StripPool(C),
+    "strippool": lambda C, stride, affine: StripPool(C),
     # Global Average Pooling 288
     "gap": lambda C: GAPModule(C),
     **AVGPOOL_OPS,
@@ -184,5 +188,5 @@ spatial_spaces = {
     "hybrid": HYBRID_PRIMITIVES,
 }
 
-PRIMITIVES = spatial_spaces["autola"]
+PRIMITIVES = spatial_spaces["fullpool"]
 
