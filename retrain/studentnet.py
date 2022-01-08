@@ -5,7 +5,7 @@ from space.operations import *
 from torch.autograd import Variable
 from space.genotypes import PRIMITIVES
 from space.genotypes import Genotype
-from retrain.attention_model_test import *
+from retrain.basemodel import *
 
 
 class Network(nn.Module):

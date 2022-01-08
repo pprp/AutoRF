@@ -16,7 +16,7 @@ import torchvision.datasets as dset
 import torch.backends.cudnn as cudnn
 import time
 from torch.autograd import Variable
-from retrain.model_attention import Network
+from retrain.studentnet import Network
 from tensorboardX import SummaryWriter
 
 parser = argparse.ArgumentParser("cifar")

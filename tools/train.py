@@ -17,8 +17,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 print(sys.path)
 
 from torch.autograd import Variable
-from search.model_search_attention_20 import Network
-from search.architect_attention import Architect
+from search.supernet import Network
+from search.architect import Architect
 import utils.utils as utils
 
 # from attention_resnet import attention_resnet20
