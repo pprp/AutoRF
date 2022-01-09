@@ -1,11 +1,15 @@
-import torch.nn as nn
+import sys
+import os 
 
-# from torch.hub import load_state_dict_from_url
-from torchvision.models import ResNet
+import torch.nn as nn
 import torch.nn.functional as F
-from space.operations import *
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 from space.genotypes import *
+from space.operations import *
 from space.spaces import *
+from torchvision.models import ResNet
 
 try:
     from torch.hub import load_state_dict_from_url
@@ -32,13 +36,13 @@ class SE(nn.Module):
 
 
 class MixedOp(nn.Module):
-    def __init__(self, C, stride):
+    def __init__(self, C, stride, affine=False):
         super(MixedOp, self).__init__()
         self._ops = nn.ModuleList()
         for primitive in PRIMITIVES:
-            op = OPS[primitive](C, stride, False)
+            op = OPS[primitive](C, stride, affine)
             if "pool" in primitive:
-                op = nn.Sequential(op, nn.BatchNorm2d(C, affine=False))
+                op = nn.Sequential(op, nn.BatchNorm2d(C, affine=affine))
             self._ops.append(op)
 
     def forward(self, x, weights):
@@ -46,14 +50,41 @@ class MixedOp(nn.Module):
 
 
 class ReceptiveFieldAttention(nn.Module):
-    def __init__(self, steps, C):
+    def __init__(self, C, steps=4, reduction=False, se=False):
         super(ReceptiveFieldAttention, self).__init__()
+        self._ops = nn.ModuleList()
+        self._C = C
+        self._steps = steps
+        self._stride = 1
+        self._se = se 
+        for i in range(self._steps):
+            for j in range(i + 1):
+                op = MixedOp(C, self._stride, False)
+                self._ops.append(op)
+        self.conv1x1 = nn.Conv2d(C * self._steps, C, kernel_size=1, stride=1,padding=0, bias=False)
+        if self._se:
+            self.se = SE(self.C_in, reduction=4)
 
-        pass
+    def forward(self, x, weights):
+        states = [x]
+        offset = 0
+        for i in range(self._steps):
+            s = sum(
+                self._ops[offset + j](h, weights[offset + j])
+                for j, h in enumerate(states)
+            )
+            offset += len(states)
+            states.append(s)
 
-    def forward(self, s0, weights):
+        # concate all released nodes
+        node_out = torch.cat(states[-self._steps :], dim=1)
+        node_out = self.conv1x1(node_out)
+        # shortcut
+        node_out = node_out + x
+        if self._se:
+            node_out = self.se(node_out)
 
-        pass
+        return node_out
 
 
 class Attention(nn.Module):
@@ -71,7 +102,6 @@ class Attention(nn.Module):
                 stride = 1
                 op = MixedOp(self.C_in, stride)
                 self._ops.append(op)
-
         self.channel_back = nn.Sequential(
             nn.Conv2d(
                 self.C_in * 5, self._C, kernel_size=1, padding=0, groups=1, bias=False
@@ -260,10 +290,8 @@ class CifarAttentionResNet34(nn.Module):
             x = layer(x, weights)
         for i, layer in enumerate(self.layer2):
             x = layer(x, weights)
-
         for i, layer in enumerate(self.layer3):
             x = layer(x, weights)
-
         for i, layer in enumerate(self.layer4):
             x = layer(x, weights)
         x = self.avgpool(x)
@@ -301,3 +329,18 @@ def attention_resnet110(**kwargs):
     """Constructs a ResNet-110 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
     return model
+
+
+if __name__ == "__main__":
+    # m = ReceptiveFieldAttention(16)
+    m = Attention(4, 16)
+
+    input = torch.zeros(4, 16, 32, 32)
+    k = sum(1 for i in range(4) for n in range(1 + i))
+
+    weights = torch.randn(k, len(PRIMITIVES))
+    print(m)
+
+    output = m(input, weights)
+
+    print(output.shape)

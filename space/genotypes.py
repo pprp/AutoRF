@@ -50,4 +50,6 @@ Attention_Searched = Genotype(
     normal_concat=range(1, 5),
 )
 
+Attention_Searched_2 = Genotype(normal=[('max_pool_3x3', 0), ('skip_connect', 1), ('max_pool_5x5', 0), ('skip_connect', 2), ('skip_connect', 1), ('max_pool_3x3', 0), ('skip_connect', 1), ('max_pool_3x3', 0), ('skip_connect', 2), ('skip_connect', 3)], normal_concat=range(1, 5))
+
 DARTS = Attention

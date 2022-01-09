@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from space.operations import *
 from torch.autograd import Variable
-from space.genotypes import PRIMITIVES
+from space.spaces import PRIMITIVES
 from space.genotypes import Genotype
 from retrain.basemodel import *
 

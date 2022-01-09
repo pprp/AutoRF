@@ -29,10 +29,10 @@ parser.add_argument(
 )
 parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
 parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
-parser.add_argument("--model_name", type=str, default="Split_20", help="name")
+parser.add_argument("--model_name", type=str, default="RESNET", help="name")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size")
 parser.add_argument("--epochs", type=int, default=600, help="num of training epochs")
-parser.add_argument("--report_freq", type=float, default=50, help="report frequency")
+parser.add_argument("--report_freq", type=float, default=100, help="report frequency")
 parser.add_argument("--grad_clip", type=float, default=5, help="gradient clipping")
 parser.add_argument("--save", type=str, default="TEST", help="experiment name")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
@@ -148,7 +148,7 @@ def main():
     )
 
     best_acc = 0.0
-    writer = SummaryWriter(os.path.join("exps",args.save))
+    writer = SummaryWriter(os.path.join("exps", args.save))
     for epoch in range(args.epochs):
         scheduler.step()
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
@@ -157,8 +157,8 @@ def main():
         logging.info("train_acc %f", train_acc)
 
         valid_acc, valid_obj = infer(test_queue, model, criterion)
-        writer.add_scalar("trai_loss", train_obj)
-        writer.add_scalar("trian_acc", train_acc)
+        writer.add_scalar("train_loss", train_obj)
+        writer.add_scalar("train_acc", train_acc)
         writer.add_scalar("val_loss", valid_obj)
         writer.add_scalar("val_acc", valid_acc)
 
@@ -167,7 +167,10 @@ def main():
             logging.info(
                 "epoch %d, valid_acc %f, best_acc %f", epoch, valid_acc, best_acc
             )
-            utils.save(model, os.path.join(os.path.join("exps", args.save), "weights_retrain.pt"))
+            utils.save(
+                model,
+                os.path.join(os.path.join("exps", args.save), "weights_retrain.pt"),
+            )
 
 
 def train(train_queue, model, criterion, optimizer):

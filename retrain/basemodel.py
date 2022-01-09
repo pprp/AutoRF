@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 from space.operations import  *
+from space.spaces import OPS 
 from utils.utils import drop_path
 from torch.autograd import Variable
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
