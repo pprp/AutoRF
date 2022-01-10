@@ -145,6 +145,40 @@ def conv3x3(in_planes, out_planes, stride=1):
         in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
     )
 
+class CifarRFBasicBlock(nn.Module):
+    def __init__(self, inplanes, planes, stride, step):
+        super(CifarRFBasicBlock, self).__init__()
+        self._steps = step
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU()
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes)
+        if inplanes != planes:
+            self.downsample = nn.Sequential(
+                nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+        else:
+            self.downsample = lambda x: x
+        self.stride = stride
+
+        self.attention = ReceptiveFieldAttention(planes)
+
+    def forward(self, x, weights):
+        residual = self.downsample(x)
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.attention(out, weights)
+        out = out + residual
+        out = self.relu(out)
+
+        return out
+
+
 
 class CifarAttentionBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step):
@@ -301,6 +335,10 @@ class CifarAttentionResNet34(nn.Module):
         return x
 
 
+def rf_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
+    return model 
+
 def attention_resnet20(**kwargs):
     """Constructs a ResNet-20 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
@@ -333,7 +371,7 @@ def attention_resnet110(**kwargs):
 
 if __name__ == "__main__":
     # m = ReceptiveFieldAttention(16)
-    m = Attention(4, 16)
+    m = CifarRFBasicBlock(16, 32, stride=1, step=4)
 
     input = torch.zeros(4, 16, 32, 32)
     k = sum(1 for i in range(4) for n in range(1 + i))

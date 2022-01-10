@@ -13,7 +13,7 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self._num_classes = num_classes
         self._criterion = nn.CrossEntropyLoss().cuda()
-        model = attention_resnet34()
+        model = rf_resnet20() #attention_resnet34()
         self.model = model
         self._steps = 4
         self._multiplier = 4

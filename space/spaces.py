@@ -159,8 +159,6 @@ SKIP_OPS = {
 }
 
 
-
-
 OPS = {
     "none": lambda C, stride, affine: Zero(stride),
     "CBAM": lambda C, stride, affine: CBAM(C, reduction_ratio=4),
@@ -189,4 +187,3 @@ spatial_spaces = {
 }
 
 PRIMITIVES = spatial_spaces["fullpool"]
-

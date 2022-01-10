@@ -1,3 +1,3 @@
 #!/bin/bash 
 
-python tools/test.py --arch Attention_Searched_2
+python tools/test.py --arch Attention

@@ -165,7 +165,7 @@ def main():
         if valid_acc > best_acc:
             best_acc = valid_acc
             logging.info(
-                "epoch %d, valid_acc %f, best_acc %f", epoch, valid_acc, best_acc
+                "valid epoch %d, valid_acc %.2f, best_acc %.2f", epoch, valid_acc, best_acc
             )
             utils.save(
                 model,
@@ -198,8 +198,7 @@ def train(train_queue, model, criterion, optimizer):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info("train %03d %e %f", step, objs.avg, top1.avg)
-            logging.info("train %03d %e %f %f", step, objs.avg, top1.avg, top5.avg)
+            logging.info("train %03d %.3f %.2f %.2f", step, objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
 
