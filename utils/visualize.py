@@ -1,4 +1,8 @@
 import sys
+import os 
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
 import space.genotypes as genotypes
 from graphviz import Digraph
 

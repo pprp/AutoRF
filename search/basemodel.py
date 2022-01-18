@@ -50,7 +50,7 @@ class MixedOp(nn.Module):
 
 
 class ReceptiveFieldAttention(nn.Module):
-    def __init__(self, C, steps=4, reduction=False, se=False):
+    def __init__(self, C, steps=3, reduction=False, se=False):
         super(ReceptiveFieldAttention, self).__init__()
         self._ops = nn.ModuleList()
         self._C = C

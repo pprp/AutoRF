@@ -15,7 +15,7 @@ class Network(nn.Module):
         self._criterion = nn.CrossEntropyLoss().cuda()
         model = rf_resnet20() #attention_resnet34()
         self.model = model
-        self._steps = 4
+        self._steps = 3
         self._multiplier = 4
         self._initialize_alphas()
 

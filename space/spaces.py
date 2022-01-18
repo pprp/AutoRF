@@ -16,7 +16,7 @@ AUTOLA_PRIMITIVES = [
 
 FULLPOOL_PRIMITIVES = [
     "none",
-    "skip_connect",
+    "noise",
     "max_pool_3x3",
     "max_pool_5x5",
     "max_pool_7x7",
@@ -187,3 +187,5 @@ spatial_spaces = {
 }
 
 PRIMITIVES = spatial_spaces["fullpool"]
+
+
