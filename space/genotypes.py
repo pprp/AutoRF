@@ -55,4 +55,6 @@ Attention_Searched_2 = Genotype(normal=[('max_pool_3x3', 0), ('skip_connect', 1)
 
 Attention_Searched_3 = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), ('noise', 1), ('max_pool_3x3', 0), ('noise', 1), ('noise', 2), ('max_pool_3x3', 0), ('noise', 1), ('noise', 3), ('noise', 2)], normal_concat=range(1, 5)) 
 
+RFSTEP3 = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), ('noise', 1), ('avg_pool_5x5', 0), ('noise', 1), ('noise', 2)], normal_concat=range(0, 4))
+
 DARTS = Attention

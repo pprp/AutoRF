@@ -1,12 +1,20 @@
-import torch
-import torch.nn as nn
-from space.operations import *
-from space.spaces import OPS
 from utils.utils import drop_path
-from torch.autograd import Variable
-from torch.utils.model_zoo import load_url as load_state_dict_from_url
 from torchvision.models import ResNet
+from torch.utils.model_zoo import load_url as load_state_dict_from_url
+from torch.autograd import Variable
+from space.spaces import OPS
+from space.operations import *
+import torch.nn as nn
+import torch
+import os
 import pdb
+import sys
+from collections import namedtuple
+
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+
+Genotype = namedtuple("Genotype", "normal normal_concat")
 
 
 class SE(nn.Module):
@@ -61,6 +69,101 @@ def conv7x7(in_channels, out_channels, stride=1, padding=3, dilation=1):
     )
 
 
+class ReceptiveFieldAttention(nn.Module):
+    def __init__(self, C, steps=3, reduction=False, se=False, genotype=None):
+        super(ReceptiveFieldAttention, self).__init__()
+        assert genotype is not None
+        self._ops = nn.ModuleList()
+        self._C = C
+        self._steps = steps
+        self._stride = 1
+        self._se = se
+        self.C_in = C
+
+        self.genotype = genotype
+        op_names, indices = zip(*self.genotype.normal)
+        concat = genotype.normal_concat
+
+        self.conv1x1 = nn.Conv2d(
+            C * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+
+        if self._se:
+            self.se = SE(self.C_in, reduction=4)
+
+        self._compile(C, op_names, indices, concat)
+
+    def _compile(self, C, op_names, indices, concat):
+        assert len(op_names) == len(indices)
+        self._concat = concat
+        self.multiplier = len(concat)
+
+        self._ops = nn.ModuleList()
+        for name, index in zip(op_names, indices):
+            op = OPS[name](self.C_in, 1, True)
+            self._ops += [op]
+
+        self.indices = indices
+
+    def forward(self, x):
+        states = [x]
+        offset = 0
+
+        total_step = (1+self._steps) * self._steps // 2
+
+        for i in range(total_step):
+            h = states[self.indices[i]]
+            ops = self._ops[i]
+            s = ops(h)
+            states.append(s)
+
+        # concate all released nodes
+        node_out = torch.cat(states[-self._steps:], dim=1)
+        node_out = self.conv1x1(node_out)
+        # shortcut
+        node_out = node_out + x
+        if self._se:
+            node_out = self.se(node_out)
+
+        return node_out
+
+
+class CifarRFBasicBlock(nn.Module):
+    def __init__(self, inplanes, planes, stride, step, genotype):
+        super(CifarRFBasicBlock, self).__init__()
+        self._steps = step
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU()
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes)
+        self.genotype = genotype
+        if inplanes != planes:
+            self.downsample = nn.Sequential(
+                nn.Conv2d(inplanes, planes, kernel_size=1,
+                          stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+        else:
+            self.downsample = lambda x: x
+        self.stride = stride
+
+        self.attention = ReceptiveFieldAttention(
+            planes, genotype=self.genotype)
+
+    def forward(self, x):
+        residual = self.downsample(x)
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.attention(out)
+        out = out + residual
+        out = self.relu(out)
+
+        return out
+
+
 class Attention(nn.Module):
     def __init__(self, step, C, genotype):
         super(Attention, self).__init__()
@@ -78,7 +181,8 @@ class Attention(nn.Module):
             ),
             nn.BatchNorm2d(self._C),
             nn.ReLU(inplace=False),
-            nn.Conv2d(self._C, self._C, kernel_size=1, padding=0, groups=1, bias=False),
+            nn.Conv2d(self._C, self._C, kernel_size=1,
+                      padding=0, groups=1, bias=False),
             nn.BatchNorm2d(self._C),
         )
         self.genotype = genotype
@@ -176,7 +280,8 @@ class CifarAttentionBasicBlock(nn.Module):
         self.genotype = genotype
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.Conv2d(inplanes, planes, kernel_size=1,
+                          stride=stride, bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
@@ -272,6 +377,10 @@ class CifarAttentionResNet(nn.Module):
         return x
 
 
+def rf_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
+    return model 
+
 def attention_resnet20(num_classes, genotype, **kwargs):
     """Constructs a ResNet-20 model."""
     model = CifarAttentionResNet(
@@ -284,3 +393,13 @@ def attention_resnet32(**kwargs):
     """Constructs a ResNet-32 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 5, **kwargs)
     return model
+
+
+if __name__ == "__main__":
+    g = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), (
+        'noise', 1), ('avg_pool_5x5', 0), ('noise', 1), ('noise', 2)], normal_concat=range(0, 4))
+
+    m = CifarRFBasicBlock(16, 8, 1, 3, g)
+    i = torch.zeros(3, 16, 32, 32)
+    o = m(i)
+    print(o.shape)

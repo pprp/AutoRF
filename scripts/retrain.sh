@@ -1,3 +1,3 @@
 #!/bin/bash 
 
-python tools/test.py --arch Attention
+python tools/retrain.py --arch RFSTEP3

@@ -13,9 +13,11 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self._num_classes = num_classes
         self.genotype = genotype
-        model = attention_resnet20(
-            num_classes=self._num_classes, genotype=self.genotype
-        )
+        # model = attention_resnet20(
+        #     num_classes=self._num_classes, genotype=self.genotype
+        # )
+        model = rf_resnet20(num_classes=self._num_classes,
+                            genotype=self.genotype)
         self.model = model
 
     def forward(self, x):
