@@ -335,19 +335,59 @@ class CifarAttentionResNet34(nn.Module):
         return x
 
 
+
 def rf_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
-    return model 
+    return model
 
-def attention_resnet20(**kwargs):
+
+def rf_resnet32(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 5, **kwargs)
+    return model
+
+
+def rf_resnet44(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 7, **kwargs)
+    return model
+
+
+def rf_resnet56(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 9, **kwargs)
+    return model
+
+
+def rf_resnet110(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 18, **kwargs)
+    return model
+
+
+def la_resnet20(**kwargs):
     """Constructs a ResNet-20 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
     return model
 
 
-def attention_resnet32(**kwargs):
+def la_resnet32(**kwargs):
     """Constructs a ResNet-32 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 5, **kwargs)
+    return model
+
+
+def la_resnet44(**kwargs):
+    """Constructs a ResNet-44 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 7, **kwargs)
+    return model
+
+
+def la_resnet56(**kwargs):
+    """Constructs a ResNet-56 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 9, **kwargs)
+    return model
+
+
+def la_resnet110(**kwargs):
+    """Constructs a ResNet-32 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
     return model
 
 

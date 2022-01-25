@@ -1,17 +1,19 @@
-from utils.utils import drop_path
-from torchvision.models import ResNet
-from torch.utils.model_zoo import load_url as load_state_dict_from_url
-from torch.autograd import Variable
-from space.spaces import OPS
-from space.operations import *
-import torch.nn as nn
-import torch
 import os
 import pdb
 import sys
 from collections import namedtuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+import torch
+import torch.nn as nn
+from space.operations import *
+from space.spaces import OPS
+from torch.autograd import Variable
+from torch.utils.model_zoo import load_url as load_state_dict_from_url
+from torchvision.models import ResNet
+from utils.utils import drop_path
+
 
 
 Genotype = namedtuple("Genotype", "normal normal_concat")
@@ -263,10 +265,32 @@ class Attention(nn.Module):
         return attention_out
 
 
-def conv3x3(in_planes, out_planes, stride=1):
-    return nn.Conv2d(
-        in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
-    )
+class BasicBlock(nn.Module):
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, step=0, genotype=None):
+        super(BasicBlock, self).__init__()
+        self.conv1 = nn.Conv2d(
+            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
 
 
 class CifarAttentionBasicBlock(nn.Module):
@@ -377,22 +401,89 @@ class CifarAttentionResNet(nn.Module):
         return x
 
 
-def rf_resnet20(**kwargs):
-    model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
-    return model 
 
-def attention_resnet20(num_classes, genotype, **kwargs):
-    """Constructs a ResNet-20 model."""
-    model = CifarAttentionResNet(
-        CifarAttentionBasicBlock, 3, num_classes, genotype, **kwargs
-    )
+
+
+def resnet20(**kwargs):
+    model = CifarAttentionResNet(BasicBlock, 3, **kwargs)
     return model
 
 
-def attention_resnet32(**kwargs):
+def resnet32(**kwargs):
+    model = CifarAttentionResNet(BasicBlock, 5, **kwargs)
+    return model
+
+
+def resnet44(**kwargs):
+    model = CifarAttentionResNet(BasicBlock, 7, **kwargs)
+    return model
+
+
+def resnet56(**kwargs):
+    model = CifarAttentionResNet(BasicBlock, 9, **kwargs)
+    return model
+
+
+def resnet110(**kwargs):
+    model = CifarAttentionResNet(BasicBlock, 18, **kwargs)
+    return model
+
+
+def rf_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
+    return model
+
+
+def rf_resnet32(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 5, **kwargs)
+    return model
+
+
+def rf_resnet44(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 7, **kwargs)
+    return model
+
+
+def rf_resnet56(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 9, **kwargs)
+    return model
+
+
+def rf_resnet110(**kwargs):
+    model = CifarAttentionResNet(CifarRFBasicBlock, 18, **kwargs)
+    return model
+
+
+def la_resnet20(**kwargs):
+    """Constructs a ResNet-20 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
+    return model
+
+
+def la_resnet32(**kwargs):
     """Constructs a ResNet-32 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 5, **kwargs)
     return model
+
+
+def la_resnet44(**kwargs):
+    """Constructs a ResNet-44 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 7, **kwargs)
+    return model
+
+
+def la_resnet56(**kwargs):
+    """Constructs a ResNet-56 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 9, **kwargs)
+    return model
+
+
+def la_resnet110(**kwargs):
+    """Constructs a ResNet-32 model."""
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
+    return model
+
+
 
 
 if __name__ == "__main__":

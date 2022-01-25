@@ -18,6 +18,8 @@ Genotype = namedtuple("Genotype", "normal normal_concat")
 #     "CBAM",
 # ]
 
+NORMAL = None
+
 Attention = Genotype(
     normal=[
         ("skip_connect", 0),

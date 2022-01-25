@@ -1,56 +1,71 @@
+
+import argparse
+import glob
+import logging
 import os
 import sys
-import glob
-import numpy as np
-import torch
-
+import time
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-import utils.utils as utils
-import logging
-import argparse
-import torch.nn as nn
+import numpy as np
 import space.genotypes as genotypes
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn as nn
 import torch.utils
 import torchvision.datasets as dset
-import torch.backends.cudnn as cudnn
-import time
-from torch.autograd import Variable
-from retrain.studentnet import Network
+import utils.utils as utils
 from tensorboardX import SummaryWriter
+from thop import profile
+from torch.autograd import Variable
+
+from retrain.studentnet import Network
+
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
     "--data", type=str, default="~/data", help="location of the data corpus"
 )
-parser.add_argument("--learning_rate", type=float, default=0.1, help="batch size")
+parser.add_argument("--learning_rate", type=float,
+                    default=0.1, help="learning rate")
+
+parser.add_argument("--model_base", type=str,
+                    default='resnet20', help='name of base models')
 parser.add_argument(
     "--learning_rate_min", type=float, default=0.001, help="min learning rate"
 )
 parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
-parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
-parser.add_argument("--model_name", type=str, default="RESNET", help="name")
+parser.add_argument("--weight_decay", type=float,
+                    default=1e-3, help="weight decay")
+parser.add_argument("--model_name", type=str, default="resnet20", help="name")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size")
-parser.add_argument("--epochs", type=int, default=600, help="num of training epochs")
-parser.add_argument("--report_freq", type=float, default=100, help="report frequency")
-parser.add_argument("--grad_clip", type=float, default=5, help="gradient clipping")
-parser.add_argument("--save", type=str, default="TEST", help="experiment name")
+parser.add_argument("--epochs", type=int, default=500,
+                    help="num of training epochs")
+parser.add_argument("--report_freq", type=float,
+                    default=100, help="report frequency")
+parser.add_argument("--grad_clip", type=float,
+                    default=5, help="gradient clipping")
+parser.add_argument("--save", type=str, default="test", help="experiment name")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
 parser.add_argument(
     "--init_channels", type=int, default=36, help="num of init channels"
 )
-parser.add_argument("--layers", type=int, default=20, help="total number of layers")
+parser.add_argument("--layers", type=int, default=20,
+                    help="total number of layers")
 parser.add_argument(
     "--model_path",
     type=str,
-    default="exps/search-EXP-20191220-160515/weights.pt",
+    default="exps/search-exp-20191220-160515/weights.pt",
     help="path of pretrained model",
 )
 parser.add_argument(
     "--auxiliary", action="store_true", default=False, help="use auxiliary tower"
 )
-parser.add_argument("--cutout", action="store_true", default=False, help="use cutout")
-parser.add_argument("--cutout_length", type=int, default=16, help="cutout length")
+parser.add_argument("--cutout", action="store_true",
+                    default=False, help="use cutout")
+
+parser.add_argument("--cutout_length", type=int,
+                    default=16, help="cutout length")
 parser.add_argument(
     "--drop_path_prob", type=float, default=0.2, help="drop path probability"
 )
@@ -62,7 +77,8 @@ args = parser.parse_args()
 args.save = "{}-{}-{}".format(
     args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
 )
-utils.create_exp_dir(os.path.join("exps", args.save), scripts_to_save=glob.glob("*.py"))
+utils.create_exp_dir(os.path.join("exps", args.save),
+                     scripts_to_save=glob.glob("*.py"))
 
 log_format = "%(asctime)s %(message)s"
 logging.basicConfig(
@@ -71,7 +87,8 @@ logging.basicConfig(
     format=log_format,
     datefmt="%m/%d %I:%M:%S %p",
 )
-fh = logging.FileHandler(os.path.join(os.path.join("exps", args.save), "log.txt"))
+fh = logging.FileHandler(os.path.join(
+    os.path.join("exps", args.save), "log.txt"))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
@@ -104,8 +121,13 @@ def main():
     genotype = eval("genotypes.%s" % args.arch)
     logging.info("genotype = %s", genotype)
 
-    model = Network(CIFAR_CLASSES, genotype)
+    model = Network(args.model_base, CIFAR_CLASSES, genotype)
+
+    flops, params = profile(model, inputs=(torch.randn(2, 3, 32, 32),))
     model = model.cuda()
+
+    info = f"flops:{flops/1000**3}G params: {params/1000**2}M"
+    logging.info(info)
 
     test_epoch = 1
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
@@ -169,7 +191,8 @@ def main():
             )
             utils.save(
                 model,
-                os.path.join(os.path.join("exps", args.save), "weights_retrain.pt"),
+                os.path.join(os.path.join("exps", args.save),
+                             "weights_retrain.pt"),
             )
 
 
@@ -198,7 +221,8 @@ def train(train_queue, model, criterion, optimizer):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info("train %03d %.3f %.2f %.2f", step, objs.avg, top1.avg, top5.avg)
+            logging.info("train %03d %.3f %.2f %.2f", step,
+                         objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
 
