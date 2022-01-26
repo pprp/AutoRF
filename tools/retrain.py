@@ -24,7 +24,7 @@ from retrain.studentnet import Network
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
-    "--data", type=str, default="~/data", help="location of the data corpus"
+    "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
 parser.add_argument("--learning_rate", type=float,
                     default=0.1, help="learning rate")
@@ -145,7 +145,7 @@ def main():
         batch_size=args.batch_size,
         shuffle=False,
         pin_memory=True,
-        num_workers=8,
+        num_workers=6,
     )
 
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
@@ -166,7 +166,7 @@ def main():
     )
 
     train_queue = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, pin_memory=True, num_workers=8
+        train_data, batch_size=args.batch_size, pin_memory=True, num_workers=6
     )
 
     best_acc = 0.0
