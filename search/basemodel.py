@@ -50,23 +50,31 @@ class MixedOp(nn.Module):
 
 
 class ReceptiveFieldAttention(nn.Module):
-    def __init__(self, C, steps=3, reduction=False, se=False):
+    def __init__(self, C, steps=3, reduction=False, se=True):
         super(ReceptiveFieldAttention, self).__init__()
         self._ops = nn.ModuleList()
         self._C = C
         self._steps = steps
         self._stride = 1
         self._se = se 
+
         for i in range(self._steps):
             for j in range(i + 1):
-                op = MixedOp(C, self._stride, False)
+                op = MixedOp(C // 4 , self._stride, False)
                 self._ops.append(op)
-        self.conv1x1 = nn.Conv2d(C * self._steps, C, kernel_size=1, stride=1,padding=0, bias=False)
+
+        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
+                                stride=1, padding=0, bias=False)
+        
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=1, stride=1,padding=0, bias=False)
+        
         if self._se:
-            self.se = SE(self.C_in, reduction=4)
+            self.se = SE(C, reduction=4)
 
     def forward(self, x, weights):
-        states = [x]
+        t = self.bottle(x)
+
+        states = [t]
         offset = 0
         for i in range(self._steps):
             s = sum(
@@ -81,6 +89,7 @@ class ReceptiveFieldAttention(nn.Module):
         node_out = self.conv1x1(node_out)
         # shortcut
         node_out = node_out + x
+
         if self._se:
             node_out = self.se(node_out)
 

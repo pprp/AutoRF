@@ -14,7 +14,7 @@ export PYTHONUNBUFFERED=1
 # python tools/retrain.py --model_base 'resnet56' --model_name 'resnet56_base' --arch 'NORMAL' & \
 # python tools/retrain.py --model_base 'resnet110' --model_name 'resnet110_base' --arch 'NORMAL'
 
-python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_base_rfstep3' --arch RFSTEP3 
+# python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_base_rfstep3' --arch RFSTEP3 
 # & \
 # python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet20_base_rfstep3' --arch RFSTEP3
 

@@ -26,9 +26,9 @@ import utils.utils as utils
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
-    "--data", type=str, default="~/data", help="location of the data corpus"
+    "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
-parser.add_argument("--model_name", type=str, default="ResNet20", help="backbone")
+parser.add_argument("--model_name", type=str, default="searching", help="backbone")
 parser.add_argument("--batch_size", type=int, default=128, help="batch size")
 parser.add_argument(
     "--learning_rate", type=float, default=0.025, help="init learning rate"
@@ -40,7 +40,7 @@ parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
 parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
 parser.add_argument("--report_freq", type=float, default=50, help="report frequency")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
-parser.add_argument("--epochs", type=int, default=50, help="num of training epochs")
+parser.add_argument("--epochs", type=int, default=100, help="num of training epochs")
 parser.add_argument(
     "--init_channels", type=int, default=16, help="num of init channels"
 )
@@ -82,7 +82,7 @@ args = parser.parse_args()
 args.save = "{}-{}-{}".format(
     args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
 )
-args.save = os.path.join("exps", args.save)
+args.save = os.path.join("exps/search", args.save)
 
 utils.create_exp_dir(args.save, scripts_to_save=glob.glob("*.py"))
 
@@ -142,7 +142,7 @@ def main():
         batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
         pin_memory=True,
-        num_workers=32,
+        num_workers=6,
     )
 
     valid_queue = torch.utils.data.DataLoader(
@@ -150,7 +150,7 @@ def main():
         batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
         pin_memory=True,
-        num_workers=32,
+        num_workers=6,
     )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(

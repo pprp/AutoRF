@@ -86,6 +86,9 @@ class ReceptiveFieldAttention(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
+        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
+                                stride=1, padding=0, bias=False)
+
         self.conv1x1 = nn.Conv2d(
             C * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
 
@@ -101,13 +104,15 @@ class ReceptiveFieldAttention(nn.Module):
 
         self._ops = nn.ModuleList()
         for name, index in zip(op_names, indices):
-            op = OPS[name](self.C_in, 1, True)
+            op = OPS[name](self.C_in // 4, 1, True)
             self._ops += [op]
 
         self.indices = indices
 
     def forward(self, x):
-        states = [x]
+        t = self.bottle(x)
+
+        states = [t]
         offset = 0
 
         total_step = (1+self._steps) * self._steps // 2

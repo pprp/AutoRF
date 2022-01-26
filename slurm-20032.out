@@ -1,0 +1,323 @@
+['tools/..', '/data/run01/scz0088/project/AutoRF/tools', '/HOME/scz0088/.conda/envs/hb/lib/python37.zip', '/HOME/scz0088/.conda/envs/hb/lib/python3.7', '/HOME/scz0088/.conda/envs/hb/lib/python3.7/lib-dynload', '/HOME/scz0088/.conda/envs/hb/lib/python3.7/site-packages', '/HOME/scz0088/.conda/envs/hb/lib/python3.7/site-packages/openselfsup-0.3.0+ab8fc27-py3.7.egg', '/HOME/scz0088/.conda/envs/hb/lib/python3.7/site-packages/wheel-0.37.0-py3.7.egg', '/data/run01/scz0088/.conda/envs/hb/lib/python3.7/site-packages']
+Experiment dir : exps/search/rf_p1-EXP-20220126-215301
+01/26 09:53:01 PM gpu device = 0
+01/26 09:53:01 PM args = Namespace(arch_learning_rate=0.003, arch_weight_decay=0.001, batch_size=128, cutout=False, cutout_length=16, data='/data/public/cifar', drop_path_prob=0.3, epochs=100, gpu=0, grad_clip=5, init_channels=16, layers=8, learning_rate=0.025, learning_rate_min=0.0001, model_name='rf_p1', model_path='saved_models', momentum=0.9, report_freq=50, save='exps/search/rf_p1-EXP-20220126-215301', seed=2, train_portion=0.5, unrolled=False, weight_decay=0.0005)
+01/26 09:53:11 PM param size = 0.405530MB
+Files already downloaded and verified
+01/26 09:53:12 PM epoch 0 lr 2.498771e-02
+01/26 09:53:12 PM genotype = Genotype(normal=[('avg_pool_5x5', 0), ('noise', 1), ('avg_pool_3x3', 0), ('max_pool_5x5', 0), ('avg_pool_7x7', 1), ('avg_pool_7x7', 2)], normal_concat=range(0, 4))
+tensor([[0.1253, 0.1249, 0.1249, 0.1249, 0.1249, 0.1249, 0.1251, 0.1250],
+        [0.1249, 0.1251, 0.1248, 0.1251, 0.1249, 0.1252, 0.1250, 0.1250],
+        [0.1250, 0.1252, 0.1251, 0.1249, 0.1250, 0.1250, 0.1250, 0.1248],
+        [0.1249, 0.1249, 0.1251, 0.1252, 0.1250, 0.1249, 0.1249, 0.1250],
+        [0.1250, 0.1249, 0.1248, 0.1251, 0.1251, 0.1249, 0.1250, 0.1251],
+        [0.1250, 0.1250, 0.1251, 0.1250, 0.1249, 0.1250, 0.1248, 0.1251]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+/HOME/scz0088/.conda/envs/hb/lib/python3.7/site-packages/torch/optim/lr_scheduler.py:134: UserWarning: Detected call of `lr_scheduler.step()` before `optimizer.step()`. In PyTorch 1.1.0 and later, you should call them in the opposite order: `optimizer.step()` before `lr_scheduler.step()`.  Failure to do this will result in PyTorch skipping the first value of the learning rate schedule. See more details at https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate
+  "https://pytorch.org/docs/stable/optim.html#how-to-adjust-learning-rate", UserWarning)
+/HOME/scz0088/.conda/envs/hb/lib/python3.7/site-packages/torch/optim/lr_scheduler.py:509: UserWarning: To get the last learning rate computed by the scheduler, please use `get_last_lr()`.
+  "please use `get_last_lr()`.", UserWarning)
+01/26 09:53:16 PM train 000 2.353413e+00 7.812500 53.125000
+01/26 09:54:05 PM train 050 1.995055e+00 24.969363 76.945466
+01/26 09:54:52 PM train 100 1.848999e+00 30.066522 82.464418
+01/26 09:55:40 PM train 150 1.751427e+00 34.059396 85.145902
+01/26 09:56:22 PM train_acc 36.868000
+01/26 09:56:23 PM valid 000 1.558564e+00 50.781250 92.968750
+01/26 09:56:28 PM valid 050 1.542854e+00 43.765319 91.574755
+01/26 09:56:33 PM valid 100 1.548593e+00 43.533416 91.545483
+01/26 09:56:37 PM valid 150 1.555483e+00 43.408526 91.545944
+01/26 09:56:42 PM valid_acc 43.480000
+01/26 09:56:42 PM epoch 1 lr 2.495702e-02
+01/26 09:56:42 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('max_pool_5x5', 1), ('avg_pool_5x5', 2), ('max_pool_7x7', 0), ('max_pool_5x5', 1)], normal_concat=range(0, 4))
+tensor([[0.1223, 0.1030, 0.1225, 0.1403, 0.1559, 0.1155, 0.1137, 0.1268],
+        [0.1218, 0.1103, 0.1307, 0.1489, 0.1416, 0.1164, 0.1210, 0.1093],
+        [0.1185, 0.1093, 0.1226, 0.1368, 0.1284, 0.1295, 0.1207, 0.1341],
+        [0.1237, 0.1132, 0.1232, 0.1277, 0.1443, 0.1200, 0.1182, 0.1297],
+        [0.1126, 0.1015, 0.1238, 0.1358, 0.1344, 0.1329, 0.1244, 0.1347],
+        [0.1088, 0.1056, 0.1092, 0.1372, 0.1230, 0.1383, 0.1494, 0.1285]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+tools/search.py:235: UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead.
+  input = Variable(input, volatile=True).cuda()
+tools/search.py:236: UserWarning: volatile was removed and now has no effect. Use `with torch.no_grad():` instead.
+  target = Variable(target, volatile=True).cuda()
+01/26 09:56:43 PM train 000 1.405992e+00 52.343750 93.750000
+01/26 09:57:33 PM train 050 1.380430e+00 49.632353 92.968750
+01/26 09:58:22 PM train 100 1.336505e+00 50.997834 93.517946
+01/26 09:59:10 PM train 150 1.301565e+00 52.224752 94.039735
+01/26 09:59:54 PM train_acc 53.152000
+01/26 09:59:54 PM valid 000 1.198632e+00 55.468750 92.187500
+01/26 09:59:59 PM valid 050 1.191440e+00 57.046569 95.710784
+01/26 10:00:04 PM valid 100 1.188347e+00 57.139542 95.830755
+01/26 10:00:08 PM valid 150 1.191468e+00 57.051945 95.679843
+01/26 10:00:13 PM valid_acc 57.268000
+01/26 10:00:13 PM epoch 2 lr 2.491410e-02
+01/26 10:00:13 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('avg_pool_7x7', 1), ('max_pool_7x7', 1), ('avg_pool_3x3', 2), ('max_pool_7x7', 0)], normal_concat=range(0, 4))
+tensor([[0.1188, 0.0788, 0.1310, 0.1483, 0.1839, 0.1119, 0.1041, 0.1231],
+        [0.1153, 0.0902, 0.1249, 0.1819, 0.1553, 0.1142, 0.1167, 0.1016],
+        [0.1109, 0.0947, 0.1239, 0.1419, 0.1298, 0.1289, 0.1167, 0.1532],
+        [0.1267, 0.1142, 0.1346, 0.1406, 0.1447, 0.1142, 0.1102, 0.1149],
+        [0.1088, 0.0935, 0.1221, 0.1254, 0.1575, 0.1401, 0.1200, 0.1325],
+        [0.1029, 0.0942, 0.1054, 0.1332, 0.1334, 0.1555, 0.1400, 0.1354]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+01/26 10:00:14 PM train 000 1.172723e+00 58.593750 94.531250
+01/26 10:01:02 PM train 050 1.122594e+00 59.558824 95.450368
+01/26 10:01:51 PM train 100 1.106710e+00 60.280012 95.853960
+01/26 10:02:40 PM train 150 1.093685e+00 60.797806 96.026490
+01/26 10:03:23 PM train_acc 61.344000
+01/26 10:03:24 PM valid 000 1.138840e+00 55.468750 96.093750
+01/26 10:03:28 PM valid 050 1.081704e+00 60.677083 96.231618
+01/26 10:03:33 PM valid 100 1.093265e+00 60.434715 95.962252
+01/26 10:03:38 PM valid 150 1.085862e+00 60.787459 96.114445
+01/26 10:03:42 PM valid_acc 60.776000
+01/26 10:03:42 PM epoch 3 lr 2.485898e-02
+01/26 10:03:42 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('max_pool_5x5', 1), ('avg_pool_3x3', 2), ('max_pool_5x5', 0), ('max_pool_7x7', 1)], normal_concat=range(0, 4))
+tensor([[0.1154, 0.0698, 0.1437, 0.1589, 0.1941, 0.1047, 0.0986, 0.1147],
+        [0.1086, 0.0822, 0.1214, 0.2053, 0.1600, 0.1106, 0.1212, 0.0908],
+        [0.1099, 0.0870, 0.1142, 0.1631, 0.1359, 0.1310, 0.1121, 0.1467],
+        [0.1213, 0.1092, 0.1430, 0.1621, 0.1414, 0.1090, 0.1018, 0.1121],
+        [0.1131, 0.0939, 0.1273, 0.1196, 0.1590, 0.1377, 0.1142, 0.1353],
+        [0.0985, 0.0893, 0.1032, 0.1287, 0.1330, 0.1781, 0.1275, 0.1416]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+01/26 10:03:43 PM train 000 1.125969e+00 60.937500 93.750000
+01/26 10:04:32 PM train 050 1.002471e+00 64.307598 96.997549
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:05:20 PM train 100 9.853024e-01 64.781869 97.037438
+01/26 10:06:10 PM train 150 9.694904e-01 65.252483 97.102649
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:06:53 PM train_acc 65.664000
+01/26 10:06:54 PM valid 000 8.224081e-01 70.312500 98.437500
+01/26 10:06:58 PM valid 050 9.203444e-01 67.080270 97.319240
+01/26 10:07:03 PM valid 100 9.228179e-01 66.947710 97.284963
+01/26 10:07:08 PM valid 150 9.165742e-01 67.285803 97.206126
+01/26 10:07:12 PM valid_acc 67.628000
+01/26 10:07:12 PM epoch 4 lr 2.479173e-02
+01/26 10:07:12 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('max_pool_5x5', 1), ('avg_pool_3x3', 2), ('max_pool_5x5', 0), ('max_pool_7x7', 1)], normal_concat=range(0, 4))
+tensor([[0.1109, 0.0631, 0.1647, 0.1661, 0.1853, 0.1016, 0.0969, 0.1114],
+        [0.1097, 0.0837, 0.1147, 0.2255, 0.1474, 0.1101, 0.1155, 0.0935],
+        [0.1185, 0.0869, 0.1141, 0.1674, 0.1424, 0.1242, 0.1088, 0.1376],
+        [0.1106, 0.0934, 0.1744, 0.1750, 0.1418, 0.1117, 0.0930, 0.1001],
+        [0.1094, 0.0882, 0.1270, 0.1239, 0.1595, 0.1374, 0.1155, 0.1391],
+        [0.1063, 0.0928, 0.1035, 0.1340, 0.1263, 0.1787, 0.1295, 0.1290]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+01/26 10:07:14 PM train 000 9.897909e-01 64.062500 96.093750
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:08:02 PM train 050 8.960584e-01 67.876838 97.702206
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:08:51 PM train 100 8.932254e-01 67.922339 97.718131
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:09:40 PM train 150 8.865035e-01 68.248137 97.630381
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:10:23 PM train_acc 68.344000
+01/26 10:10:24 PM valid 000 9.492545e-01 67.968750 96.093750
+01/26 10:10:28 PM valid 050 9.145170e-01 66.911765 97.457108
+01/26 10:10:33 PM valid 100 9.077291e-01 67.458230 97.602104
+01/26 10:10:37 PM valid 150 9.087166e-01 67.322020 97.578642
+01/26 10:10:42 PM valid_acc 67.212000
+01/26 10:10:42 PM epoch 5 lr 2.471242e-02
+01/26 10:10:42 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('max_pool_5x5', 1), ('max_pool_5x5', 0), ('avg_pool_3x3', 2), ('avg_pool_3x3', 1)], normal_concat=range(0, 4))
+tensor([[0.1188, 0.0574, 0.1665, 0.1609, 0.1839, 0.1034, 0.0950, 0.1140],
+        [0.1125, 0.0817, 0.1172, 0.2189, 0.1432, 0.1067, 0.1197, 0.1001],
+        [0.1241, 0.0844, 0.1142, 0.1858, 0.1431, 0.1232, 0.0981, 0.1269],
+        [0.1093, 0.0917, 0.1811, 0.1973, 0.1289, 0.1025, 0.0927, 0.0965],
+        [0.1153, 0.0917, 0.1189, 0.1335, 0.1444, 0.1462, 0.1187, 0.1312],
+        [0.1216, 0.0985, 0.1158, 0.1190, 0.1271, 0.1727, 0.1176, 0.1277]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+01/26 10:10:43 PM train 000 5.907893e-01 78.125000 100.000000
+01/26 10:11:32 PM train 050 8.353795e-01 70.205270 97.671569
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/util.py", line 300, in _run_finalizers
+    finalizer()
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/util.py", line 224, in __call__
+    res = self._callback(*self._args, **self._kwargs)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/util.py", line 133, in _remove_temp_dir
+    rmtree(tempdir)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/shutil.py", line 498, in rmtree
+    onerror(os.rmdir, path, sys.exc_info())
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/shutil.py", line 496, in rmtree
+    os.rmdir(path)
+OSError: [Errno 39] Directory not empty: '/tmp/pymp-lnvr4cqf'
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:12:21 PM train 100 8.222290e-01 70.676052 97.818688
+01/26 10:13:09 PM train 150 8.070803e-01 71.533526 97.889073
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:13:53 PM train_acc 71.552000
+01/26 10:13:54 PM valid 000 1.090601e+00 64.062500 96.093750
+01/26 10:13:59 PM valid 050 9.555672e-01 66.758578 97.319240
+01/26 10:14:03 PM valid 100 9.640292e-01 66.599629 97.184406
+01/26 10:14:08 PM valid 150 9.634139e-01 66.535596 97.149214
+01/26 10:14:12 PM valid_acc 66.556000
+01/26 10:14:13 PM epoch 6 lr 2.462111e-02
+01/26 10:14:13 PM genotype = Genotype(normal=[('max_pool_7x7', 0), ('max_pool_5x5', 0), ('max_pool_5x5', 1), ('max_pool_5x5', 0), ('avg_pool_3x3', 2), ('max_pool_7x7', 1)], normal_concat=range(0, 4))
+tensor([[0.1122, 0.0551, 0.1793, 0.1709, 0.1919, 0.0943, 0.0846, 0.1116],
+        [0.1157, 0.0813, 0.1181, 0.2294, 0.1247, 0.1097, 0.1144, 0.1067],
+        [0.1317, 0.0900, 0.1146, 0.1870, 0.1395, 0.1191, 0.0887, 0.1293],
+        [0.1146, 0.0916, 0.1791, 0.2203, 0.1179, 0.0962, 0.0845, 0.0958],
+        [0.1289, 0.0943, 0.1157, 0.1413, 0.1524, 0.1356, 0.1164, 0.1154],
+        [0.1374, 0.1089, 0.1067, 0.1185, 0.1194, 0.1699, 0.1216, 0.1176]],
+       device='cuda:0', grad_fn=<SoftmaxBackward>)
+01/26 10:14:14 PM train 000 8.195358e-01 69.531250 98.437500
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+01/26 10:15:02 PM train 050 7.675244e-01 73.498775 98.238358
+01/26 10:15:52 PM train 100 7.548397e-01 73.336943 98.352413
+01/26 10:16:40 PM train 150 7.529415e-01 73.515108 98.313328
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
+Traceback (most recent call last):
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/queues.py", line 242, in _feed
+    send_bytes(obj)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 200, in send_bytes
+    self._send_bytes(m[offset:offset + size])
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 404, in _send_bytes
+    self._send(header + buf)
+  File "/HOME/scz0088/.conda/envs/hb/lib/python3.7/multiprocessing/connection.py", line 368, in _send
+    n = write(self._handle, buf)
+BrokenPipeError: [Errno 32] Broken pipe
