@@ -5,6 +5,7 @@ import logging
 import os
 import sys
 import time
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import numpy as np
@@ -26,6 +27,7 @@ parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
     "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
+parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
 parser.add_argument("--learning_rate", type=float,
                     default=0.1, help="learning rate")
 
@@ -42,16 +44,12 @@ parser.add_argument("--batch_size", type=int, default=256, help="batch size")
 parser.add_argument("--epochs", type=int, default=500,
                     help="num of training epochs")
 parser.add_argument("--report_freq", type=float,
-                    default=100, help="report frequency")
+                    default=200, help="report frequency")
 parser.add_argument("--grad_clip", type=float,
                     default=5, help="gradient clipping")
 parser.add_argument("--save", type=str, default="test", help="experiment name")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
-parser.add_argument(
-    "--init_channels", type=int, default=36, help="num of init channels"
-)
-parser.add_argument("--layers", type=int, default=20,
-                    help="total number of layers")
+
 parser.add_argument(
     "--model_path",
     type=str,
@@ -77,7 +75,7 @@ args = parser.parse_args()
 args.save = "{}-{}-{}".format(
     args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
 )
-utils.create_exp_dir(os.path.join("exps", args.save),
+utils.create_exp_dir(os.path.join("exps/retrain", args.save),
                      scripts_to_save=glob.glob("*.py"))
 
 log_format = "%(asctime)s %(message)s"
@@ -88,7 +86,7 @@ logging.basicConfig(
     datefmt="%m/%d %I:%M:%S %p",
 )
 fh = logging.FileHandler(os.path.join(
-    os.path.join("exps", args.save), "log.txt"))
+    os.path.join("exps/retrain", args.save), "log.txt"))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
@@ -170,7 +168,8 @@ def main():
     )
 
     best_acc = 0.0
-    writer = SummaryWriter(os.path.join("exps", args.save))
+    writer = SummaryWriter(os.path.join("exps/retrain", args.save))
+
     for epoch in range(args.epochs):
         scheduler.step()
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
@@ -191,7 +190,7 @@ def main():
             )
             utils.save(
                 model,
-                os.path.join(os.path.join("exps", args.save),
+                os.path.join(os.path.join("exps/retrain", args.save),
                              "weights_retrain.pt"),
             )
 

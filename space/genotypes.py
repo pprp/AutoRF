@@ -2,22 +2,6 @@ from collections import namedtuple
 
 Genotype = namedtuple("Genotype", "normal normal_concat")
 
-# PRIMITIVES = [
-#     "none",
-#     "skip_connect",
-#     "sep_conv_3x3",
-#     #'sep_conv_5x5',
-#     "dil_conv_3x3",
-#     #'dil_conv_5x5',
-#     "sep_conv_3x3_spatial",
-#     #'sep_conv_5x5_spatial',
-#     "dil_conv_3x3_spatial",
-#     #'dil_conv_5x5_spatial',
-#     "SE", # xx
-#     "SE_A_M", # xx 
-#     "CBAM",
-# ]
-
 NORMAL = None
 
 Attention = Genotype(
@@ -52,11 +36,13 @@ Attention_Searched = Genotype(
     normal_concat=range(1, 5),
 )
 
-Attention_Searched_2 = Genotype(normal=[('max_pool_3x3', 0), ('skip_connect', 1), ('max_pool_5x5', 0), ('skip_connect', 2), ('skip_connect', 1), ('max_pool_3x3', 0), ('skip_connect', 1), ('max_pool_3x3', 0), ('skip_connect', 2), ('skip_connect', 3)], normal_concat=range(1, 5))
+P1 = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), ('max_pool_5x5', 1), ('max_pool_3x3', 0), ('noise', 2), ('noise', 1)], normal_concat=range(0, 4))
 
+P2 =  Genotype(normal=[('conv_5x1_1x5', 0), ('dil_conv_3x3', 1), ('conv_3x1_1x3', 0), ('dil_conv_3x3_spatial', 1), ('dil_conv_5x5', 2), ('conv_5x1_1x5', 0)], normal_concat=range(0, 4))
 
-Attention_Searched_3 = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), ('noise', 1), ('max_pool_3x3', 0), ('noise', 1), ('noise', 2), ('max_pool_3x3', 0), ('noise', 1), ('noise', 3), ('noise', 2)], normal_concat=range(1, 5)) 
+P3 = Genotype(normal=[('dil_conv_3x3_spatial', 0), ('dil_conv_3x3', 1), ('conv_5x1_1x5', 0), ('dil_conv_3x3', 1), ('dil_conv_3x3', 2), ('conv_5x1_1x5', 0)], normal_concat=range(0, 4))
 
-RFSTEP3 = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), ('noise', 1), ('avg_pool_5x5', 0), ('noise', 1), ('noise', 2)], normal_concat=range(0, 4))
+P4 = Genotype(normal=[('conv_5x1_1x5', 0), ('sep_conv_3x3_spatial', 1), ('sep_conv_5x5', 0), ('dil_conv_3x3_spatial', 1), ('sep_conv_3x3_spatial', 2), ('conv_3x1_1x3', 0)], normal_concat=range(0, 4))
 
-DARTS = Attention
+P5 = Genotype(normal=[('avg_pool_3x3', 0), ('conv_3x1_1x3', 0), ('sep_conv_3x3_spatial', 1), ('avg_pool_3x3', 0), ('sep_conv_3x3_spatial', 1), ('noise', 2)], normal_concat=range(0, 4))
+

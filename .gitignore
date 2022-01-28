@@ -4,3 +4,6 @@ exps/*
 normal*
 *.pyc
 *.out 
+slurm-20334.out
+slurm*
+slurm-20032.out

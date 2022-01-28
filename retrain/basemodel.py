@@ -72,7 +72,7 @@ def conv7x7(in_channels, out_channels, stride=1, padding=3, dilation=1):
 
 
 class ReceptiveFieldAttention(nn.Module):
-    def __init__(self, C, steps=3, reduction=False, se=False, genotype=None):
+    def __init__(self, C, steps=3, reduction=False, se=True, genotype=None):
         super(ReceptiveFieldAttention, self).__init__()
         assert genotype is not None
         self._ops = nn.ModuleList()
@@ -81,6 +81,7 @@ class ReceptiveFieldAttention(nn.Module):
         self._stride = 1
         self._se = se
         self.C_in = C
+        self.conv3x3 = False 
 
         self.genotype = genotype
         op_names, indices = zip(*self.genotype.normal)
@@ -90,10 +91,13 @@ class ReceptiveFieldAttention(nn.Module):
                                 stride=1, padding=0, bias=False)
 
         self.conv1x1 = nn.Conv2d(
-            C * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+            C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
 
         if self._se:
             self.se = SE(self.C_in, reduction=4)
+
+        if self.conv3x3: 
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
 
         self._compile(C, op_names, indices, concat)
 
@@ -125,9 +129,15 @@ class ReceptiveFieldAttention(nn.Module):
 
         # concate all released nodes
         node_out = torch.cat(states[-self._steps:], dim=1)
-        node_out = self.conv1x1(node_out)
+        
+        if self.conv3x3:
+            node_out = self.conv3x3(node_out)
+        else:
+            node_out = self.conv1x1(node_out)
+
         # shortcut
         node_out = node_out + x
+
         if self._se:
             node_out = self.se(node_out)
 
@@ -297,6 +307,55 @@ class BasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
+class NormalAttentionBasicBlock(nn.Module):
+    '''
+    SE 
+    CBAM 
+    '''
+    expansion = 1
+
+    def __init__(self, in_planes, planes, stride=1, step=0, genotype=None, se=False, cbam=False):
+        super(NormalAttentionBasicBlock, self).__init__()
+
+        self.se = se
+        self.cbam = cbam
+
+        self.conv1 = nn.Conv2d(
+            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
+                               stride=1, padding=1, bias=False)
+        self.bn2 = nn.BatchNorm2d(planes)
+
+        self.shortcut = nn.Sequential()
+        if stride != 1 or in_planes != planes:
+            self.shortcut = nn.Sequential(
+                nn.Conv2d(in_planes, self.expansion * planes,
+                          kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(self.expansion * planes)
+            )
+
+        if self.se: 
+            self.se = SE(planes, reduction=16)
+        
+        if self.cbam: 
+            self.cbam = CBAM(planes, reduction_ratio=16)
+
+
+    def forward(self, x):
+        out = F.relu(self.bn1(self.conv1(x)))
+        out = self.bn2(self.conv2(out))
+
+        if self.se:
+            out = self.se(out)
+        
+        if self.cbam:
+            out = self.cbam(out)
+        
+        out += self.shortcut(x)
+        out = F.relu(out)
+        return out
+
 
 class CifarAttentionBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype):
@@ -406,9 +465,6 @@ class CifarAttentionResNet(nn.Module):
         return x
 
 
-
-
-
 def resnet20(**kwargs):
     model = CifarAttentionResNet(BasicBlock, 3, **kwargs)
     return model
@@ -488,8 +544,13 @@ def la_resnet110(**kwargs):
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
     return model
 
+def resnet20_cbam(**kwargs):
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, cbam=True, **kwargs)
+    return model
 
-
+def resnet20_se(**kwargs):
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, se=True, **kwargs)
+    return model
 
 if __name__ == "__main__":
     g = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), (

@@ -1,33 +1,34 @@
+import argparse
+import glob
+import logging
 import os
 import sys
 import time
-import glob
-import numpy as np
-import torch
-import logging
-import argparse
-import torch.nn as nn
-import torch.utils
-import torch.nn.functional as F
-import torchvision.datasets as dset
-import torch.backends.cudnn as cudnn
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
-print(sys.path)
+import numpy as np
+import torch
+import torch.backends.cudnn as cudnn
+import torch.nn as nn
+import torch.nn.functional as F
+import torch.utils
+import torchvision.datasets as dset
 
-from torch.autograd import Variable
-from search.supernet import Network
-from search.architect import Architect
+
 import utils.utils as utils
+from torch.autograd import Variable
 
-# from attention_resnet import attention_resnet20
+from search.architect import Architect
+from search.supernet import Network
+
 
 
 parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
     "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
+parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
 parser.add_argument("--model_name", type=str, default="searching", help="backbone")
 parser.add_argument("--batch_size", type=int, default=128, help="batch size")
 parser.add_argument(
@@ -40,16 +41,12 @@ parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
 parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
 parser.add_argument("--report_freq", type=float, default=50, help="report frequency")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
-parser.add_argument("--epochs", type=int, default=100, help="num of training epochs")
-parser.add_argument(
-    "--init_channels", type=int, default=16, help="num of init channels"
-)
-parser.add_argument("--layers", type=int, default=8, help="total number of layers")
+parser.add_argument("--epochs", type=int, default=50, help="num of training epochs")
 parser.add_argument(
     "--model_path", type=str, default="saved_models", help="path to save the model"
 )
 parser.add_argument("--cutout", action="store_true", default=False, help="use cutout")
-parser.add_argument("--cutout_length", type=int, default=16, help="cutout length")
+parser.add_argument("--cutout_length", type=int, default=8, help="cutout length")
 parser.add_argument(
     "--drop_path_prob", type=float, default=0.3, help="drop path probability"
 )
@@ -68,7 +65,7 @@ parser.add_argument(
 parser.add_argument(
     "--arch_learning_rate",
     type=float,
-    default=3e-3,
+    default=1e-4,
     help="learning rate for arch encoding",
 )
 parser.add_argument(

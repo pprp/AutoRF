@@ -23,11 +23,12 @@ FULLPOOL_PRIMITIVES = [
     "avg_pool_3x3",
     "avg_pool_5x5",
     "avg_pool_7x7",
+    "strippool",
 ]
 
 FULLCONV_PRIMITIVES = [
     "none",
-    "skip_connect",
+    "noise",
     "dil_conv_3x3",
     "dil_conv_3x3_spatial",
     "dil_conv_5x5",
@@ -40,7 +41,7 @@ FULLCONV_PRIMITIVES = [
     "conv_5x1_1x5",
 ]
 
-HYBRID_PRIMITIVES = [*FULLCONV_PRIMITIVES, *FULLPOOL_PRIMITIVES]
+HYBRID_PRIMITIVES = list(set([*FULLCONV_PRIMITIVES, *FULLPOOL_PRIMITIVES])) 
 
 
 MAXPOOL_OPS = {
@@ -186,6 +187,4 @@ spatial_spaces = {
     "hybrid": HYBRID_PRIMITIVES,
 }
 
-PRIMITIVES = spatial_spaces["fullpool"]
-
-
+PRIMITIVES = spatial_spaces["autola"]

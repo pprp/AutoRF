@@ -57,6 +57,7 @@ class ReceptiveFieldAttention(nn.Module):
         self._steps = steps
         self._stride = 1
         self._se = se 
+        self.conv3x3 = False
 
         for i in range(self._steps):
             for j in range(i + 1):
@@ -67,7 +68,10 @@ class ReceptiveFieldAttention(nn.Module):
                                 stride=1, padding=0, bias=False)
         
         self.conv1x1 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=1, stride=1,padding=0, bias=False)
-        
+
+        if self.conv3x3: 
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
+
         if self._se:
             self.se = SE(C, reduction=4)
 
@@ -86,7 +90,11 @@ class ReceptiveFieldAttention(nn.Module):
 
         # concate all released nodes
         node_out = torch.cat(states[-self._steps :], dim=1)
-        node_out = self.conv1x1(node_out)
+        
+        if self.conv3x3:
+            node_out = self.conv3x3(node_out)
+        else:
+            node_out = self.conv1x1(node_out)
         # shortcut
         node_out = node_out + x
 
