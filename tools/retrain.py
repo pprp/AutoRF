@@ -19,8 +19,10 @@ import utils.utils as utils
 from tensorboardX import SummaryWriter
 from thop import profile
 from torch.autograd import Variable
-
+from utils.labelsmooth import LSR 
 from retrain.studentnet import Network
+from torch.cuda.amp import autocast
+
 
 
 parser = argparse.ArgumentParser("cifar")
@@ -38,7 +40,7 @@ parser.add_argument(
 )
 parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
 parser.add_argument("--weight_decay", type=float,
-                    default=1e-3, help="weight decay")
+                    default=5e-4, help="weight decay 1e-3")
 parser.add_argument("--model_name", type=str, default="resnet20", help="name")
 parser.add_argument("--batch_size", type=int, default=256, help="batch size")
 parser.add_argument("--epochs", type=int, default=500,
@@ -131,6 +133,7 @@ def main():
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
     criterion = nn.CrossEntropyLoss()
+    # criterion = LSR(e=0.2)
     criterion = criterion.cuda()
 
     train_transform, test_transform = utils._data_transforms_cifar10(args)
@@ -174,7 +177,9 @@ def main():
         scheduler.step()
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
-        train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+        # train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+        train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
+
         logging.info("train_acc %f", train_acc)
 
         valid_acc, valid_obj = infer(test_queue, model, criterion)
@@ -194,6 +199,78 @@ def main():
                              "weights_retrain.pt"),
             )
 
+def train_ricap(train_queue, model, criterion, optimizer):
+    objs = utils.AvgrageMeter()
+    top1 = utils.AvgrageMeter()
+    top5 = utils.AvgrageMeter()
+    model.train()
+
+    for step, (input, target) in enumerate(train_queue):
+        n = input.size(0)
+
+        input = Variable(input, requires_grad=False).cuda()
+        target = Variable(target, requires_grad=False).cuda()
+        
+        I_x, I_y = input.size()[2:]
+
+        w = int(np.round(I_x * np.random.beta(0.3, 0.3)))
+        h = int(np.round(I_y * np.random.beta(0.3, 0.3)))
+        w_ = [w, I_x - w, w, I_x - w]
+        h_ = [h, h, I_y - h, I_y - h]
+
+        cropped_images = {}
+        c_ = {}
+        W_ = {}
+        for k in range(4):
+            idx = torch.randperm(input.size(0))
+            x_k = np.random.randint(0, I_x - w_[k] + 1)
+            y_k = np.random.randint(0, I_y - h_[k] + 1)
+            cropped_images[k] = input[idx][
+                :, :, x_k : x_k + w_[k], y_k : y_k + h_[k]
+            ]
+            c_[k] = target[idx].cuda()
+            W_[k] = w_[k] * h_[k] / (I_x * I_y)
+
+        patched_images = torch.cat(
+            (
+                torch.cat((cropped_images[0], cropped_images[1]), 2),
+                torch.cat((cropped_images[2], cropped_images[3]), 2),
+            ),
+            3,
+        )
+        patched_images = patched_images.cuda()
+
+        if True: # amp=True
+            with autocast():
+                output = model(patched_images)
+                loss = sum([W_[k] * criterion(output, c_[k]) for k in range(4)])
+        else:
+            output = model(patched_images)
+            loss = sum([W_[k] * criterion(output, c_[k]) for k in range(4)])
+
+        acc = sum([W_[k] * utils.accuracy(output, c_[k])[0] for k in range(4)])
+
+        
+        optimizer.zero_grad()
+        logits = model(input)
+        loss = criterion(logits, target)
+
+        loss.backward()
+        nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+        optimizer.step()
+
+        prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
+        objs.update(loss.item(), n)
+        top1.update(prec1.item(), n)
+        top5.update(prec5.item(), n)
+
+        if step % args.report_freq == 0:
+            logging.info("train %03d %.3f %.2f %.2f", step,
+                         objs.avg, top1.avg, top5.avg)
+
+    return top1.avg, objs.avg
+
+        
 
 def train(train_queue, model, criterion, optimizer):
     objs = utils.AvgrageMeter()

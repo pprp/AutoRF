@@ -25,7 +25,11 @@ export PYTHONUNBUFFERED=1
 
 # python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_base_rfstep3' --arch Attention
 
-python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8' --arch Attention --cutout --cutout_length 8 
+# python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_labelsmooth_cutout8' --arch Attention --cutout --cutout_length 8
+
+python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_wd2e3_ricap' --arch Attention   --weight_decay 2e-3 
+
+# python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8_wd5e4' --arch Attention --cutout --cutout_length 8 --weight_decay 5e-4 
 
 
 # python tools/retrain.py --model_base 'la_resnet32' --model_name 'la_resnet20_base_rfstep3' --arch Attention & \

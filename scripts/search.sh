@@ -16,4 +16,5 @@ python tools/search.py --model_name rf_p5
 # P3 = C//4 + SE=False + 3x3(not 1x1) + SPP2(Dilconv)
 # p4 = C//4 + SE=True + SPP2(Dilconv)
 # p5 = C//4 + SE=True + SPP3(Hybrid conv+pool)
+# p6 = C//4 + SE=True + SPP1(FULLPool) + Self-Attention
 
