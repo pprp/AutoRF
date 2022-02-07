@@ -187,4 +187,4 @@ spatial_spaces = {
     "hybrid": HYBRID_PRIMITIVES,
 }
 
-PRIMITIVES = spatial_spaces["autola"]
+PRIMITIVES = spatial_spaces["fullpool"]

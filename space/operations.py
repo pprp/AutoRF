@@ -36,6 +36,8 @@ class StripPool(nn.Module):
     def forward(self, x):
         _, _, h, w = x.size()
         x = self.conv1x1(x)
+
+        # print(f"strip: 40 {x.shape} h:{h} w:{w}")
         x1 = F.interpolate(self.conv1(self.pool1(x)), (h, w))
         x2 = F.interpolate(self.conv2(self.pool2(x)), (h, w))
         x = self.conv3(torch.cat([x1, x2], dim=1))

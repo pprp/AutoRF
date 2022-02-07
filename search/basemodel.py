@@ -10,6 +10,7 @@ from space.genotypes import *
 from space.operations import *
 from space.spaces import *
 from torchvision.models import ResNet
+from search.utils import DropPath 
 
 try:
     from torch.hub import load_state_dict_from_url
@@ -48,6 +49,93 @@ class MixedOp(nn.Module):
     def forward(self, x, weights):
         return sum(w * op(x) for w, op in zip(weights, self._ops))
 
+class CMlp(nn.Module):
+    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+        super().__init__()
+        out_features = out_features or in_features
+        hidden_features = hidden_features or in_features
+        self.fc1 = nn.Conv2d(in_features, hidden_features, 1)
+        self.act = act_layer()
+        self.fc2 = nn.Conv2d(hidden_features, out_features, 1)
+        self.drop = nn.Dropout(drop)
+
+    def forward(self, x):
+        x = self.fc1(x)
+        x = self.act(x)
+        x = self.drop(x)
+        x = self.fc2(x)
+        x = self.drop(x)
+        return x
+
+class ReceptiveFieldSelfAttention(nn.Module):
+    def __init__(self, C, steps=3, reduction=False, se=True, drop_prob=0. , mlp_ratio=2. ):
+        super(ReceptiveFieldSelfAttention, self).__init__()
+        self._ops = nn.ModuleList()
+        self._C = C
+        self._steps = steps
+        self._stride = 1
+        self._se = se 
+        self.conv3x3 = False
+
+        self.pos_embed = nn.Conv2d(C, C, 3, padding=1,groups=C)
+        self.norm1 = nn.BatchNorm2d(C)
+
+        for i in range(self._steps):
+            for j in range(i + 1):
+                op = MixedOp(C // 4 , self._stride, False)
+                self._ops.append(op)
+
+        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
+                                stride=1, padding=0, bias=False)
+        
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=1, stride=1,padding=0, bias=False)
+
+        self.drop_path = DropPath(drop_prob) if drop_prob > 0. else nn.Identity() 
+        self.norm2 = nn.BatchNorm2d(C)
+
+        mlp_hidden_dim = int(C * mlp_ratio)
+
+        self.mlp = CMlp(in_features=C, hidden_features=mlp_hidden_dim, act_layer=nn.GELU, drop=0.)
+
+        if self.conv3x3: 
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
+
+        if self._se:
+            self.se = SE(C, reduction=4)
+
+    def forward(self, x, weights):
+        # t = self.bottle(x)
+        t = x + self.pos_embed(x)
+        t = self.bottle(t)
+
+        states = [t]
+        offset = 0
+        for i in range(self._steps):
+            s = sum(
+                self._ops[offset + j](h, weights[offset + j])
+                for j, h in enumerate(states)
+            )
+            offset += len(states)
+            states.append(s)
+
+        # concate all released nodes
+        node_out = torch.cat(states[-self._steps :], dim=1)
+        
+        if self.conv3x3:
+            node_out = self.conv3x3(node_out)
+        else:
+            node_out = self.conv1x1(node_out)
+
+        # shortcut
+        node_out = node_out + x
+
+        if self._se:
+            node_out = self.se(node_out)
+        
+        # mlp part 
+        node_out = node_out + self.drop_path(self.mlp(self.norm2(node_out)))
+
+        return node_out
 
 class ReceptiveFieldAttention(nn.Module):
     def __init__(self, C, steps=3, reduction=False, se=True):
@@ -162,6 +250,39 @@ def conv3x3(in_planes, out_planes, stride=1):
         in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
     )
 
+class CifarRFSABasicBlock(nn.Module):
+    def __init__(self, inplanes, planes, stride, step):
+        super(CifarRFSABasicBlock, self).__init__()
+        self._steps = step
+        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.bn1 = nn.BatchNorm2d(planes)
+        self.relu = nn.ReLU()
+        self.conv2 = conv3x3(planes, planes)
+        self.bn2 = nn.BatchNorm2d(planes)
+        if inplanes != planes:
+            self.downsample = nn.Sequential(
+                nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
+                nn.BatchNorm2d(planes),
+            )
+        else:
+            self.downsample = lambda x: x
+        self.stride = stride
+
+        self.attention = ReceptiveFieldSelfAttention(planes)
+
+    def forward(self, x, weights):
+        residual = self.downsample(x)
+        out = self.conv1(x)
+        out = self.bn1(out)
+        out = self.relu(out)
+        out = self.conv2(out)
+        out = self.bn2(out)
+        out = self.attention(out, weights)
+        out = out + residual
+        out = self.relu(out)
+
+        return out
+
 class CifarRFBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step):
         super(CifarRFBasicBlock, self).__init__()
@@ -195,6 +316,38 @@ class CifarRFBasicBlock(nn.Module):
 
         return out
 
+
+# class CifarRFSABasicBlock(nn.Module):
+#     def __init__(self, inplanes, planes, stride, step):
+#         super(CifarRFSABasicBlock, self).__init__()
+#         self._steps = step
+#         self.conv1 = conv3x3(inplanes, planes, stride)
+#         self.bn1 = nn.BatchNorm2d(planes)
+#         self.relu = nn.ReLU()
+#         self.conv2 = conv3x3(planes, planes)
+#         self.bn2 = nn.BatchNorm2d(planes)
+#         if inplanes != planes:
+#             self.downsample = nn.Sequential(
+#                 nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
+#                 nn.BatchNorm2d(planes),
+#             )
+#         else:
+#             self.downsample = lambda x: x
+#         self.stride = stride
+
+#         self.attention = ReceptiveFieldSelfAttention(planes)
+
+#     def forward(self, x, weights):
+#         residual = self.downsample(x)
+#         out = self.conv1(x)
+#         out = self.bn1(out)
+#         out = self.relu(out)
+#         out = self.conv2(out)
+#         out = self.bn2(out)
+#         out = self.attention(out, weights)
+#         out = out + residual
+#         out = self.relu(out)
+#         return out
 
 
 class CifarAttentionBasicBlock(nn.Module):
@@ -333,7 +486,6 @@ class CifarAttentionResNet34(nn.Module):
         return self.layers
 
     def forward(self, x, weights):
-
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
@@ -351,6 +503,10 @@ class CifarAttentionResNet34(nn.Module):
 
         return x
 
+
+def rfsa_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFSABasicBlock, 3, **kwargs)
+    return model
 
 
 def rf_resnet20(**kwargs):
@@ -428,13 +584,15 @@ def attention_resnet110(**kwargs):
 
 if __name__ == "__main__":
     # m = ReceptiveFieldAttention(16)
-    m = CifarRFBasicBlock(16, 32, stride=1, step=4)
+    # m = CifarRFBasicBlock(16, 32, stride=1, step=4)
+    # m = CifarRFSABasicBlock(16, 32, 1, step=3)
+    m = ReceptiveFieldSelfAttention(16)
 
     input = torch.zeros(4, 16, 32, 32)
     k = sum(1 for i in range(4) for n in range(1 + i))
 
     weights = torch.randn(k, len(PRIMITIVES))
-    print(m)
+    # print(m)
 
     output = m(input, weights)
 

@@ -46,3 +46,5 @@ P4 = Genotype(normal=[('conv_5x1_1x5', 0), ('sep_conv_3x3_spatial', 1), ('sep_co
 
 P5 = Genotype(normal=[('avg_pool_3x3', 0), ('conv_3x1_1x3', 0), ('sep_conv_3x3_spatial', 1), ('avg_pool_3x3', 0), ('sep_conv_3x3_spatial', 1), ('noise', 2)], normal_concat=range(0, 4))
 
+P6 = Genotype(normal=[('avg_pool_5x5', 0), ('noise', 1), ('avg_pool_3x3', 0), ('noise', 2), ('noise', 1), ('strippool', 0)], normal_concat=range(0, 4))
+

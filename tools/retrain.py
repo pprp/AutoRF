@@ -123,11 +123,11 @@ def main():
 
     model = Network(args.model_base, CIFAR_CLASSES, genotype)
 
-    flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32),))
+    # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32),))
     model = model.cuda()
 
-    info = f"flops:{flops/1000**3}G params: {params/1000**2}M"
-    logging.info(info)
+    # info = f"flops:{flops/1000**3}G params: {params/1000**2}M"
+    # logging.info(info)
 
     test_epoch = 1
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
