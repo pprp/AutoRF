@@ -15,7 +15,7 @@ class Network(nn.Module):
         self._num_classes = num_classes
         self.genotype = genotype
         self.model = bm.__dict__[model_base](num_classes=self._num_classes,
-                                             genotype=self.genotype)
+                                             genotype=self.genotype, dropout=0.2)
 
     def forward(self, x):
         return self.model(x)

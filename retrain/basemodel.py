@@ -2,6 +2,7 @@ import os
 import pdb
 import sys
 from collections import namedtuple
+import warnings
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
@@ -34,6 +35,41 @@ class SE(nn.Module):
         y = self.avg_pool(x).view(b, c)
         y = self.fc(y).view(b, c, 1, 1)
         return x * y.expand_as(x)
+
+def autopad(k, p=None):  # kernel, padding
+    # Pad to 'same'
+    if p is None:
+        p = k // 2 if isinstance(k, int) else [x // 2 for x in k]  # auto-pad
+    return p
+
+class Conv(nn.Module):
+    # Standard convolution
+    def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):  # ch_in, ch_out, kernel, stride, padding, groups
+        super().__init__()
+        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p), groups=g, bias=False)
+        self.bn = nn.BatchNorm2d(c2)
+        self.act = nn.SiLU() if act is True else (act if isinstance(act, nn.Module) else nn.Identity())
+
+    def forward(self, x):
+        return self.act(self.bn(self.conv(x)))
+
+    def forward_fuse(self, x):
+        return self.act(self.conv(x))
+
+class SPP(nn.Module):
+    # Spatial Pyramid Pooling (SPP) layer https://arxiv.org/abs/1406.4729
+    def __init__(self, c1, c2, k=(5, 9, 13)):
+        super().__init__()
+        c_ = c1 // 2  # hidden channels
+        self.cv1 = Conv(c1, c_, 1, 1)
+        self.cv2 = Conv(c_ * (len(k) + 1), c2, 1, 1)
+        self.m = nn.ModuleList([nn.MaxPool2d(kernel_size=x, stride=1, padding=x // 2) for x in k])
+
+    def forward(self, x):
+        x = self.cv1(x)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore')  # suppress torch 1.9.0 max_pool2d() warning
+            return self.cv2(torch.cat([x] + [m(x) for m in self.m], 1))
 
 
 def conv1x1(in_channels, out_channels, stride=1):
@@ -426,14 +462,16 @@ class NormalAttentionBasicBlock(nn.Module):
     '''
     SE 
     CBAM 
+    SPP 
     '''
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1, step=0, genotype=None, se=False, cbam=False):
+    def __init__(self, in_planes, planes, stride=1, step=0, genotype=None, se=False, cbam=False, spp=False):
         super(NormalAttentionBasicBlock, self).__init__()
 
         self.se = se
         self.cbam = cbam
+        self.spp = spp 
 
         self.conv1 = nn.Conv2d(
             in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
@@ -455,6 +493,9 @@ class NormalAttentionBasicBlock(nn.Module):
         
         if self.cbam: 
             self.cbam = CBAM(planes, reduction_ratio=16)
+        
+        if self.spp:
+            self.spp = SPP(planes, planes)
 
 
     def forward(self, x):
@@ -466,6 +507,9 @@ class NormalAttentionBasicBlock(nn.Module):
         
         if self.cbam:
             out = self.cbam(out)
+        
+        if self.spp:
+            out = self.spp(out)
         
         out += self.shortcut(x)
         out = F.relu(out)
@@ -527,11 +571,12 @@ class CMlp(nn.Module):
         return x
 
 class CifarAttentionResNet(nn.Module):
-    def __init__(self, block, n_size, num_classes, genotype):
+    def __init__(self, block, n_size, num_classes, genotype, dropout=0.):
         super(CifarAttentionResNet, self).__init__()
         self.inplane = 16
         self.genotype = genotype
         self.channel_in = 16
+        self.dropout = dropout 
         self.conv1 = nn.Conv2d(
             3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
         )
@@ -593,6 +638,10 @@ class CifarAttentionResNet(nn.Module):
         for i, layer in enumerate(self.layer3):
             x = layer(x)
         x = self.avgpool(x)
+
+        if self.dropout > 0:
+            x = F.dropout(x, p=self.dropout)
+
         x = x.view(x.size(0), -1)
         x = self.fc(x)
 
@@ -683,6 +732,10 @@ def la_resnet110(**kwargs):
 
 def resnet20_cbam(**kwargs):
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, cbam=True, **kwargs)
+    return model
+
+def resnet20_spp(**kwargs):
+    model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, spp=True, **kwargs)
     return model
 
 def resnet20_se(**kwargs):

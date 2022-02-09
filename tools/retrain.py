@@ -177,8 +177,8 @@ def main():
         scheduler.step()
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
-        # train_acc, train_obj = train(train_queue, model, criterion, optimizer)
-        train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
+        train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+        # train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
 
         logging.info("train_acc %f", train_acc)
 
