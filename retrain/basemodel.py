@@ -106,6 +106,13 @@ def conv7x7(in_channels, out_channels, stride=1, padding=3, dilation=1):
 
 
 class ReceptiveFieldAttention(nn.Module):
+    '''
+        receptive field attention module 
+        choose:
+            se: True or False 
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+
+    '''
     def __init__(self, C, steps=3, reduction=False, se=True, genotype=None):
         super(ReceptiveFieldAttention, self).__init__()
         assert genotype is not None
@@ -179,6 +186,13 @@ class ReceptiveFieldAttention(nn.Module):
 
 
 class ReceptiveFieldSelfAttention(nn.Module):
+    '''
+        receptive field self attention module (add FFN module)
+        choose:
+            se: True or False 
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+
+    '''
     def __init__(self, C, steps=3, reduction=False, se=True, genotype=None, drop_prob=0. , mlp_ratio=2. ):
         super(ReceptiveFieldSelfAttention, self).__init__()
         assert genotype is not None
@@ -254,8 +268,13 @@ class ReceptiveFieldSelfAttention(nn.Module):
         # shortcut
         node_out = node_out + x
 
+        node_out = self.norm1(node_out)
+
         if self._se:
             node_out = self.se(node_out)
+
+        # mlp part 
+        node_out = node_out + self.drop_path(self.mlp(self.norm2(node_out)))
 
         return node_out
 

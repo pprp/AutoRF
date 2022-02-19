@@ -54,7 +54,7 @@ export PYTHONUNBUFFERED=1
 
 # p1 = C//4 + SE=True + SPP1(Fullpool)
 # p2 = C//4 + SE=False + SPP2(Dilconv)
-# P3 = C//4 + SE=False + 3x3(not 1x1) + SPP2(Dilconv)
+# P3 = C//4 + SE=False + 3x3(not 1x1) + SPP2(fgt)
 # p4 = C//4 + SE=True + SPP2(Dilconv)
 # p5 = C//4 + SE=True + SPP3(Hybrid conv+pool)
 
@@ -78,4 +78,7 @@ export PYTHONUNBUFFERED=1
 # source activate torch17 
 
 
-python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_cutout8_bs=128_dropout=0.3' --arch P1 --cutout --cutout_length 8 --batch_size 128 
+# python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_cutout8_bs=128_dropout=0.3' --arch P1 --cutout --cutout_length 8 --batch_size 128 
+
+# P6: 修改正确以后的模型
+python tools/retrain.py --model_base 'rfsa_resnet20' --model_name 'p6_rfsa_resnet20_cutout8' --arch P6 --cutout --cutout_length 8 
