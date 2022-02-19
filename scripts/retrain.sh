@@ -35,7 +35,7 @@ export PYTHONUNBUFFERED=1
 
 # python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8_lr0.025' --arch Attention --cutout --cutout_length 8 --learning_rate 0.025
 
-python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8_bs=128_dropout=0.2' --arch Attention --cutout --cutout_length 8 --batch_size 128 
+# python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8_bs=128_dropout=0.5' --arch Attention --cutout --cutout_length 8 --batch_size 128 
 
 # python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cutout8_bs=64' --arch Attention --cutout --cutout_length 8 --batch_size 64 
 
@@ -77,4 +77,5 @@ python tools/retrain.py --model_base 'la_resnet20' --model_name 'la_resnet20_cut
 # module load anaconda
 # source activate torch17 
 
-# 1.20日 18:30开始运行程序
+
+python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_cutout8_bs=128_dropout=0.3' --arch P1 --cutout --cutout_length 8 --batch_size 128 
