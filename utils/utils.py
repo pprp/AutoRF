@@ -4,6 +4,8 @@ import torch
 import shutil
 import torchvision.transforms as transforms
 from torch.autograd import Variable
+from torch.utils.data import DataLoader
+import torchvision.datasets as datasets
 
 
 class AvgrageMeter(object):
@@ -58,9 +60,20 @@ class Cutout(object):
         return img
 
 
-def _data_transforms_cifar10(args):
-    CIFAR_MEAN = [0.49139968, 0.48215827, 0.44653124]
-    CIFAR_STD = [0.24703233, 0.24348505, 0.26158768]
+def _data_transforms_cifar(args):
+    CIFAR10_MEAN = [0.49139968, 0.48215827, 0.44653124]
+    CIFAR10_STD = [0.24703233, 0.24348505, 0.26158768]
+
+    CIFAR100_MEAN = [0.5071, 0.4865, 0.4409]
+    CIFAR100_STD = [0.1942, 0.1918, 0.1958]
+
+    if args.dataset == "cifar10":
+        CIFAR10_MEAN, CIFAR_STD = CIFAR10_MEAN, CIFAR10_STD 
+    elif args.dataset == "cifar100":
+        CIFAR_MEAN, CIFAR_STD = CIFAR100_MEAN, CIFAR100_STD
+    else:
+        raise "Not support"
+
 
     train_transform = transforms.Compose(
         [
@@ -80,6 +93,40 @@ def _data_transforms_cifar10(args):
         ]
     )
     return train_transform, valid_transform
+
+def _data_loader_cifar(args, train_transforms, valid_transforms):
+    if args.dataset == "cifar10":
+        train_dataset = datasets.CIFAR10(
+            args.data, 
+            train=True, 
+            download=True, 
+            transforms=train_transforms
+        )
+        valid_dataset = datasets.CIFAR10(
+            args.data, 
+            train=False, 
+            download=True, 
+            transforms=valid_transforms
+        )
+    elif args.dataset == "cifar100":
+        train_dataset = datasets.CIFAR100(
+            args.data, 
+            train=True, 
+            download=True, 
+            transforms=train_transforms
+        )
+        valid_dataset = datasets.CIFAR100(
+            args.data, 
+            train=False, 
+            download=True, 
+            transforms=valid_transforms
+        )
+    
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=6, pin_memory=True)
+    valid_dataloader = DataLoader(valid_dataset, batch_size=args.batch_size, 
+    shuffle=False, num_workers=6, pin_memory=True)
+
+    return train_dataloader, valid_dataloader
 
 
 def count_parameters_in_MB(model):

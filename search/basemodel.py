@@ -539,49 +539,6 @@ def la_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
     return model
 
-
-def la_resnet32(**kwargs):
-    """Constructs a ResNet-32 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 5, **kwargs)
-    return model
-
-
-def la_resnet44(**kwargs):
-    """Constructs a ResNet-44 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 7, **kwargs)
-    return model
-
-
-def la_resnet56(**kwargs):
-    """Constructs a ResNet-56 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 9, **kwargs)
-    return model
-
-
-def la_resnet110(**kwargs):
-    """Constructs a ResNet-32 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
-    return model
-
-
-def attention_resnet34(**kwargs):
-    """Constructs a ResNet-56 model."""
-    model = CifarAttentionResNet34(CifarAttentionBasicBlock, 5, **kwargs)
-    return model
-
-
-def attention_resnet56(**kwargs):
-    """Constructs a ResNet-34 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 9, **kwargs)
-    return model
-
-
-def attention_resnet110(**kwargs):
-    """Constructs a ResNet-110 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 18, **kwargs)
-    return model
-
-
 if __name__ == "__main__":
     # m = ReceptiveFieldAttention(16)
     # m = CifarRFBasicBlock(16, 32, stride=1, step=4)

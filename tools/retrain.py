@@ -29,6 +29,9 @@ parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
     "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
+parser.add_argument(
+    "--dataset", type=str, default="cifar10", help="cifar10 or cifar100"
+)
 parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
 parser.add_argument("--learning_rate", type=float,
                     default=0.1, help="learning rate")
@@ -46,7 +49,7 @@ parser.add_argument("--batch_size", type=int, default=256, help="batch size")
 parser.add_argument("--epochs", type=int, default=500,
                     help="num of training epochs")
 parser.add_argument("--report_freq", type=float,
-                    default=200, help="report frequency")
+                    default=400, help="report frequency")
 parser.add_argument("--grad_clip", type=float,
                     default=5, help="gradient clipping")
 parser.add_argument("--save", type=str, default="test", help="experiment name")
@@ -65,9 +68,13 @@ parser.add_argument("--cutout", action="store_true",
                     default=False, help="use cutout")
 
 parser.add_argument("--cutout_length", type=int,
-                    default=16, help="cutout length")
+                    default=8, help="cutout length")
 parser.add_argument(
     "--drop_path_prob", type=float, default=0.2, help="drop path probability"
+)
+
+parser.add_argument(
+    "--dropout", type=float, default=0., help="drop path probability"
 )
 parser.add_argument("--seed", type=int, default=0, help="random seed")
 parser.add_argument(
@@ -78,7 +85,7 @@ args.save = "{}-{}-{}".format(
     args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
 )
 utils.create_exp_dir(os.path.join("exps/retrain", args.save),
-                     scripts_to_save=glob.glob("*.py"))
+                     scripts_to_save=glob.glob("*/*.py"))
 
 log_format = "%(asctime)s %(message)s"
 logging.basicConfig(
@@ -121,7 +128,7 @@ def main():
     genotype = eval("genotypes.%s" % args.arch)
     logging.info("genotype = %s", genotype)
 
-    model = Network(args.model_base, CIFAR_CLASSES, genotype)
+    model = Network(args.model_base, CIFAR_CLASSES, genotype, dropout=args.dropout)
 
     # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32),))
     model = model.cuda()
@@ -137,20 +144,8 @@ def main():
     criterion = criterion.cuda()
 
     train_transform, test_transform = utils._data_transforms_cifar10(args)
-    test_data = dset.CIFAR10(
-        root=args.data, train=False, download=True, transform=test_transform
-    )
-
-    test_queue = torch.utils.data.DataLoader(
-        test_data,
-        batch_size=args.batch_size,
-        shuffle=False,
-        pin_memory=True,
-        num_workers=6,
-    )
-
-    logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
-
+    train_queue, test_queue = utils._data_loader_cifar(args, train_transform, test_transform)
+    
     optimizer = torch.optim.SGD(
         model.parameters(),
         args.learning_rate,
@@ -162,25 +157,16 @@ def main():
         optimizer, float(args.epochs)
     )
 
-    train_data = dset.CIFAR10(
-        root=args.data, train=True, download=True, transform=train_transform
-    )
-
-    train_queue = torch.utils.data.DataLoader(
-        train_data, batch_size=args.batch_size, pin_memory=True, num_workers=6
-    )
-
     best_acc = 0.0
     writer = SummaryWriter(os.path.join("exps/retrain", args.save))
 
     for epoch in range(args.epochs):
-        scheduler.step()
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
         train_acc, train_obj = train(train_queue, model, criterion, optimizer)
         # train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
 
-        logging.info("train_acc %f", train_acc)
+        # logging.info("train_acc %f", train_acc)
 
         valid_acc, valid_obj = infer(test_queue, model, criterion)
         writer.add_scalar("train_loss", train_obj)
@@ -198,6 +184,8 @@ def main():
                 os.path.join(os.path.join("exps/retrain", args.save),
                              "weights_retrain.pt"),
             )
+        scheduler.step()
+
 
 def train_ricap(train_queue, model, criterion, optimizer):
     objs = utils.AvgrageMeter()
@@ -296,9 +284,9 @@ def train(train_queue, model, criterion, optimizer):
         top1.update(prec1.item(), n)
         top5.update(prec5.item(), n)
 
-        if step % args.report_freq == 0:
-            logging.info("train %03d %.3f %.2f %.2f", step,
-                         objs.avg, top1.avg, top5.avg)
+        # if step % args.report_freq == 0:
+        #     logging.info("train %03d %.3f %.2f %.2f", step,
+        #                  objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
 
@@ -310,8 +298,8 @@ def infer(test_queue, model, criterion):
     model.eval()
     with torch.no_grad():
         for step, (input, target) in enumerate(test_queue):
-            input = Variable(input, volatile=True).cuda()
-            target = Variable(target, volatile=True).cuda()
+            input = input.cuda()
+            target = target.cuda()
 
             logits = model(input)
             loss = criterion(logits, target)

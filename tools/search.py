@@ -28,6 +28,10 @@ parser = argparse.ArgumentParser("cifar")
 parser.add_argument(
     "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
+parser.add_argument(
+    "--dataset", type=str, default="cifar10", help="cifar10 or cifar100"
+)
+
 parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
 parser.add_argument("--model_name", type=str, default="searching", help="backbone")
 parser.add_argument("--batch_size", type=int, default=128, help="batch size")
@@ -81,7 +85,7 @@ args.save = "{}-{}-{}".format(
 )
 args.save = os.path.join("exps/search", args.save)
 
-utils.create_exp_dir(args.save, scripts_to_save=glob.glob("*.py"))
+utils.create_exp_dir(args.save, scripts_to_save=glob.glob("*/*.py"))
 
 log_format = "%(asctime)s %(message)s"
 logging.basicConfig(
