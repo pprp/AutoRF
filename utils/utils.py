@@ -100,31 +100,31 @@ def _data_loader_cifar(args, train_transforms, valid_transforms):
             args.data, 
             train=True, 
             download=True, 
-            transforms=train_transforms
+            transform=train_transforms
         )
         valid_dataset = datasets.CIFAR10(
             args.data, 
             train=False, 
             download=True, 
-            transforms=valid_transforms
+            transform=valid_transforms
         )
     elif args.dataset == "cifar100":
         train_dataset = datasets.CIFAR100(
             args.data, 
             train=True, 
             download=True, 
-            transforms=train_transforms
+            transform=train_transforms
         )
         valid_dataset = datasets.CIFAR100(
             args.data, 
             train=False, 
             download=True, 
-            transforms=valid_transforms
+            transform=valid_transforms
         )
     
-    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=6, pin_memory=True)
+    train_dataloader = DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=3, pin_memory=True)
     valid_dataloader = DataLoader(valid_dataset, batch_size=args.batch_size, 
-    shuffle=False, num_workers=6, pin_memory=True)
+    shuffle=False, num_workers=3, pin_memory=True)
 
     return train_dataloader, valid_dataloader
 

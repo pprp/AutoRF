@@ -64,6 +64,11 @@ parser.add_argument(
 parser.add_argument(
     "--auxiliary", action="store_true", default=False, help="use auxiliary tower"
 )
+
+parser.add_argument(
+    "--label_smooth", action="store_true", default=False, help="wether use label smooth"
+)
+
 parser.add_argument("--cutout", action="store_true",
                     default=False, help="use cutout")
 
@@ -99,7 +104,10 @@ fh = logging.FileHandler(os.path.join(
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
-CIFAR_CLASSES = 10
+if args.dataset == "cifar10":
+    CIFAR_CLASSES = 10
+elif args.dataset == "cifar100":
+    CIFAR_CLASSES = 100 
 
 
 def set_learning_rate(optimizer, epoch):
@@ -139,11 +147,14 @@ def main():
     test_epoch = 1
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
-    criterion = nn.CrossEntropyLoss()
-    # criterion = LSR(e=0.2)
+
+    if args.label_smooth:
+        criterion = LSR(e=0.2)
+    else:
+        criterion = nn.CrossEntropyLoss()
     criterion = criterion.cuda()
 
-    train_transform, test_transform = utils._data_transforms_cifar10(args)
+    train_transform, test_transform = utils._data_transforms_cifar(args)
     train_queue, test_queue = utils._data_loader_cifar(args, train_transform, test_transform)
     
     optimizer = torch.optim.SGD(

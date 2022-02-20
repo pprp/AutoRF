@@ -72,7 +72,7 @@ export PYTHONUNBUFFERED=1
 # python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfconvnext_resnet20_cutout8_correct' --arch P6 --cutout --cutout_length 8 
 
 # 运行中 
-python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfconvnext_resnet20_cutout8_correct_bs128' --arch P6 --cutout --cutout_length 8 --batch_size 128 
+# python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfconvnext_resnet20_cutout8_correct_bs128' --arch P6 --cutout --cutout_length 8 --batch_size 128 
 
 
 # 训练resnet20以外的方案 
@@ -90,3 +90,76 @@ python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfco
 # 运行中
 # python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet32_P1_cutout8_bs128' --arch P1 --cutout --cutout_length 8 --batch_size 128 & \
 # python tools/retrain.py --model_base 'rf_resnet56' --model_name  'rf_resnet56_P1_cutout8_bs128' --arch P1 --cutout --cutout_length 8 --batch_size 128
+
+
+#########################################################################
+
+# CIFAR100 数据集相关实验 
+# 运行中
+# resnet20 
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet20_cifar100_none' & \
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --cutout --cutout_length 8 \ 
+#                         --arch P1 \
+#                         --model_name 'rf_resnet20_cifar100_cutout8'
+                        
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --label_smooth \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet20_cifar100_ls' & \
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --dropout 0.3 \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet20_cifar100_drop0.3'
+
+# resnet32 
+# 运行中
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet32_cifar100_none' & \
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --cutout --cutout_length 8 \ 
+#                         --arch P1 \
+#                         --model_name 'rf_resnet32_cifar100_cutout8'
+                        
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --label_smooth \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet32_cifar100_ls' & \
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --dropout 0.3 \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet32_cifar100_drop0.3'
+
+# resnet 56 
+
+python tools/retrain.py --model_base 'rf_resnet56' \
+                        --dataset 'cifar100' \
+                        --arch P1 \
+                        --model_name 'rf_resnet56_cifar100_none' & \
+python tools/retrain.py --model_base 'rf_resnet56' \
+                        --dataset 'cifar100' \
+                        --cutout --cutout_length 8 \ 
+                        --arch P1 \
+                        --model_name 'rf_resnet56_cifar100_cutout8'
+                        
+python tools/retrain.py --model_base 'rf_resnet56' \
+                        --dataset 'cifar100' \
+                        --label_smooth \
+                        --arch P1 \
+                        --model_name 'rf_resnet56_cifar100_ls' & \
+python tools/retrain.py --model_base 'rf_resnet56' \
+                        --dataset 'cifar100' \
+                        --dropout 0.3 \
+                        --arch P1 \
+                        --model_name 'rf_resnet56_cifar100_drop0.3'
