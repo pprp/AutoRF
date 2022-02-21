@@ -68,10 +68,10 @@ export PYTHONUNBUFFERED=1
 # 复现最好的结果
 # python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet20_P1_cutout8_ls' --arch P1 --cutout --cutout_length 8
 
-# 运行中
+# 86%
 # python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfconvnext_resnet20_cutout8_correct' --arch P6 --cutout --cutout_length 8 
 
-# 运行中 
+# 82% 
 # python tools/retrain.py --model_base 'rfconvnext_resnet20' --model_name 'p6_rfconvnext_resnet20_cutout8_correct_bs128' --arch P6 --cutout --cutout_length 8 --batch_size 128 
 
 
@@ -103,7 +103,7 @@ export PYTHONUNBUFFERED=1
 #                         --model_name 'rf_resnet20_cifar100_none' & \
 # python tools/retrain.py --model_base 'rf_resnet20' \
 #                         --dataset 'cifar100' \
-#                         --cutout --cutout_length 8 \ 
+#                         --cutout --cutout_length 8 \
 #                         --arch P1 \
 #                         --model_name 'rf_resnet20_cifar100_cutout8'
                         
@@ -118,6 +118,25 @@ export PYTHONUNBUFFERED=1
 #                         --arch P1 \
 #                         --model_name 'rf_resnet20_cifar100_drop0.3'
 
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --cutout --cutout_length 8 \
+#                         --arch P1 \
+#                         --label_smooth \
+#                         --batch_size 128 \
+#                         --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls'
+
+python tools/retrain.py --model_base 'rf_resnet20' \
+                        --dataset 'cifar100' \
+                        --cutout \
+                        --cutout_length 8 \
+                        --arch P1 \
+                        --batch_size 128 \
+                        --label_smooth \
+                        --epochs 200 \
+                        --scheduler 'steplr' \
+                        --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls_steplr' 
+
 # resnet32 
 # 运行中
 # python tools/retrain.py --model_base 'rf_resnet32' \
@@ -126,7 +145,7 @@ export PYTHONUNBUFFERED=1
 #                         --model_name 'rf_resnet32_cifar100_none' & \
 # python tools/retrain.py --model_base 'rf_resnet32' \
 #                         --dataset 'cifar100' \
-#                         --cutout --cutout_length 8 \ 
+#                         --cutout --cutout_length 8 \
 #                         --arch P1 \
 #                         --model_name 'rf_resnet32_cifar100_cutout8'
                         
@@ -141,25 +160,65 @@ export PYTHONUNBUFFERED=1
 #                         --arch P1 \
 #                         --model_name 'rf_resnet32_cifar100_drop0.3'
 
+
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --cutout --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --model_name 'rf_resnet32_cifar100_cutout8_bs128'
+
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'steplr' \
+#                         --model_name 'rf_resnet32_cifar100_cutout8_bs128_ls_steplr' 
+
 # resnet 56 
 
-python tools/retrain.py --model_base 'rf_resnet56' \
-                        --dataset 'cifar100' \
-                        --arch P1 \
-                        --model_name 'rf_resnet56_cifar100_none' & \
-python tools/retrain.py --model_base 'rf_resnet56' \
-                        --dataset 'cifar100' \
-                        --cutout --cutout_length 8 \ 
-                        --arch P1 \
-                        --model_name 'rf_resnet56_cifar100_cutout8'
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet56_cifar100_none' & \
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet56_cifar100_cutout8'
                         
-python tools/retrain.py --model_base 'rf_resnet56' \
-                        --dataset 'cifar100' \
-                        --label_smooth \
-                        --arch P1 \
-                        --model_name 'rf_resnet56_cifar100_ls' & \
-python tools/retrain.py --model_base 'rf_resnet56' \
-                        --dataset 'cifar100' \
-                        --dropout 0.3 \
-                        --arch P1 \
-                        --model_name 'rf_resnet56_cifar100_drop0.3'
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --label_smooth \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet56_cifar100_ls' & \
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --dropout 0.3 \
+#                         --arch P1 \
+#                         --model_name 'rf_resnet56_cifar100_drop0.3'
+
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --model_name 'rf_resnet56_cifar100_cutout8_bs128_ls'
+
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'steplr' \
+#                         --model_name 'rf_resnet56_cifar100_cutout8_bs128_ls_steplr' 
