@@ -1,4 +1,9 @@
 import argparse
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+
+
 import torch
 import torchvision
 from torch.utils.data import DataLoader
@@ -6,7 +11,11 @@ from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
 from timm.loss import LabelSmoothingCrossEntropy
 # from homura.vision.models.cifar_resnet import wrn28_2, wrn28_10, resnet20, resnet56, resnext29_32x4d
-from asam import ASAM, SAM
+from utils.asam import ASAM, SAM
+import space.genotypes as genotypes
+
+from retrain.studentnet import Network
+
 
 def load_cifar(data_loader, batch_size=256, num_workers=2):
     if data_loader == CIFAR10:
@@ -28,8 +37,8 @@ def load_cifar(data_loader, batch_size=256, num_workers=2):
                          ])
  
     # DataLoader
-    train_set = data_loader(root='./data', train=True, download=True, transform=train_transform)
-    test_set = data_loader(root='./data', train=False, download=True, transform=test_transform)
+    train_set = data_loader(root='/data/public/cifar', train=True, download=True, transform=train_transform)
+    test_set = data_loader(root='/data/public/cifar', train=False, download=True, transform=test_transform)
     train_loader = DataLoader(train_set, batch_size=batch_size, shuffle=True, 
             num_workers=num_workers)
     test_loader = DataLoader(test_set, batch_size=batch_size, shuffle=False, 
@@ -43,7 +52,8 @@ def train(args):
     num_classes = 10 if args.dataset == 'CIFAR10' else 100
 
     # Model
-    model = eval(args.model)(num_classes=num_classes).cuda()
+    # model = eval(args.model)(num_classes=num_classes).cuda()
+    model = Network(args.model, num_classes, eval("genotypes.%s" % args.arch), dropout=0.).cuda()
 
     # Minimizer
     optimizer = torch.optim.SGD(model.parameters(), lr=args.lr, 
@@ -112,8 +122,9 @@ def train(args):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--dataset", default='CIFAR10', type=str, help="CIFAR10 or CIFAR100.")
-    parser.add_argument("--model", default='wrn28_10', type=str, help="Name of model architecure")
+    parser.add_argument("--dataset", default='CIFAR100', type=str, help="CIFAR10 or CIFAR100.")
+    parser.add_argument("--model", default='rf_resnet56', type=str, help="Name of model architecure")
+    parser.add_argument("--arch", default='P1', type=str, help="Name of model arch")
     parser.add_argument("--minimizer", default='ASAM', type=str, help="ASAM or SAM.")
     parser.add_argument("--lr", default=0.1, type=float, help="Initial learning rate.")
     parser.add_argument("--momentum", default=0.9, type=float, help="Momentum.")
