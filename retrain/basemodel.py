@@ -845,9 +845,6 @@ def resnet56(**kwargs):
     return model
 
 
-def resnet110(**kwargs):
-    model = CifarAttentionResNet(BasicBlock, 18, **kwargs)
-    return model
 
 
 def rf_resnet20(**kwargs):
@@ -867,21 +864,9 @@ def rf_resnet32(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 5, **kwargs)
     return model
 
-
-def rf_resnet44(**kwargs):
-    model = CifarAttentionResNet(CifarRFBasicBlock, 7, **kwargs)
-    return model
-
-
 def rf_resnet56(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 9, **kwargs)
     return model
-
-
-def rf_resnet110(**kwargs):
-    model = CifarAttentionResNet(CifarRFBasicBlock, 18, **kwargs)
-    return model
-
 
 def la_resnet20(**kwargs):
     """Constructs a ResNet-20 model."""

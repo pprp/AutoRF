@@ -126,18 +126,41 @@ export PYTHONUNBUFFERED=1
 #                         --batch_size 128 \
 #                         --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls'
 
-python tools/retrain.py --model_base 'rf_resnet20' \
-                        --dataset 'cifar100' \
-                        --cutout \
-                        --cutout_length 8 \
-                        --arch P1 \
-                        --batch_size 128 \
-                        --label_smooth \
-                        --epochs 200 \
-                        --scheduler 'steplr' \
-                        --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls_steplr' 
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'steplr' \
+#                         --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls_steplr' 
 
-# resnet32 
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'warmup' \
+#                         --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls_warmup' 
+
+# python tools/retrain.py --model_base 'rf_resnet20' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'warmup' \
+#                         --no_bias_decay \
+#                         --model_name 'rf_resnet20_cifar100_cutout8_bs128_ls_warmup_no_bias_decay' 
+
+# resnet32 ############################################################################
 # 运行中
 # python tools/retrain.py --model_base 'rf_resnet32' \
 #                         --dataset 'cifar100' \
@@ -179,7 +202,30 @@ python tools/retrain.py --model_base 'rf_resnet20' \
 #                         --scheduler 'steplr' \
 #                         --model_name 'rf_resnet32_cifar100_cutout8_bs128_ls_steplr' 
 
-# resnet 56 
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'warmup' \
+#                         --model_name 'rf_resnet32_cifar100_cutout8_bs128_ls_warmup' 
+
+# python tools/retrain.py --model_base 'rf_resnet32' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'warmup' \
+#                         --no_bias_decay \
+#                         --model_name 'rf_resnet32_cifar100_cutout8_bs128_ls_warmup_no_bias_decay' 
+
+# resnet 56 ############################################################################
 
 # python tools/retrain.py --model_base 'rf_resnet56' \
 #                         --dataset 'cifar100' \
@@ -222,3 +268,27 @@ python tools/retrain.py --model_base 'rf_resnet20' \
 #                         --epochs 200 \
 #                         --scheduler 'steplr' \
 #                         --model_name 'rf_resnet56_cifar100_cutout8_bs128_ls_steplr' 
+
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 200 \
+#                         --scheduler 'warmup' \
+#                         --model_name 'rf_resnet56_cifar100_cutout8_bs128_ls_warmup' 
+
+python tools/retrain.py --model_base 'rf_resnet56' \
+                        --dataset 'cifar100' \
+                        --cutout \
+                        --cutout_length 8 \
+                        --arch P1 \
+                        --batch_size 128 \
+                        --label_smooth \
+                        --epochs 600 \
+                        --scheduler 'cosine' \
+                        --no_bias_decay \
+                        --learning_rate 0.04 \
+                        --model_name 'cifar100_rf_resnet56_cutout8_bs128_ls_cosine_no_bias_decay_lr0.04' 

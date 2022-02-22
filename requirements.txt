@@ -4,3 +4,4 @@ torchvision
 graphviz
 numpy 
 thop 
+timm 

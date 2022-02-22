@@ -15,14 +15,14 @@ import torch.nn as nn
 import torch.utils
 import torchvision.datasets as dset
 import utils.utils as utils
-from utils.warmup import WarmUpLR
 from tensorboardX import SummaryWriter
 from thop import profile
 from torch.autograd import Variable
-from utils.labelsmooth import LSR
-from retrain.studentnet import Network
 from torch.cuda.amp import autocast
+from utils.labelsmooth import LSR
+from utils.warmup import WarmUpLR
 
+from retrain.studentnet import Network
 
 parser = argparse.ArgumentParser("cifar")
 
@@ -84,6 +84,10 @@ parser.add_argument(
 )
 
 parser.add_argument(
+    "--no_bias_decay", action="store_true", default=False, help="Highly Scalable Deep Learning Training System with Mixed-Precision: Training ImageNet in Four Minutes"
+)
+
+parser.add_argument(
     "--scheduler", type=str, default="cosine", help="scheduler choose from cosine, steplr, warmup"
 )
 
@@ -130,16 +134,6 @@ if args.dataset == "cifar10":
 elif args.dataset == "cifar100":
     CIFAR_CLASSES = 100
 
-
-def set_learning_rate(optimizer, epoch):
-    if epoch <= 150:
-        optimizer.param_groups[0]["lr"] = 0.1
-    elif epoch < 300:
-        optimizer.param_groups[0]["lr"] = 0.01
-    else:
-        optimizer.param_groups[0]["lr"] = 0.001
-
-
 def main():
     if not torch.cuda.is_available():
         logging.info("no gpu device available")
@@ -179,16 +173,22 @@ def main():
         args, train_transform, test_transform
     )
 
+    if args.no_bias_decay:
+        params = utils.split_weights(model)
+    else:
+        params = model.parameters()
+    
     optimizer = torch.optim.SGD(
-        model.parameters(),
-        args.learning_rate,
-        momentum=args.momentum,
-        weight_decay=args.weight_decay,
-    )
+            params,
+            args.learning_rate,
+            momentum=args.momentum,
+            weight_decay=args.weight_decay,
+            # nesterov=True
+        )
 
     if args.scheduler == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, float(args.epochs)
+        optimizer, float(args.epochs), eta_min=args.learning_rate_min,
     )
     elif args.scheduler == "steplr":
         scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
@@ -211,10 +211,11 @@ def main():
         # logging.info("train_acc %f", train_acc)
 
         valid_acc, valid_obj = infer(test_queue, model, criterion)
-        writer.add_scalar("train_loss", train_obj)
-        writer.add_scalar("train_acc", train_acc)
-        writer.add_scalar("val_loss", valid_obj)
-        writer.add_scalar("val_acc", valid_acc)
+        writer.add_scalar("train_loss", train_obj, epoch)
+        writer.add_scalar("train_acc", train_acc, epoch)
+        writer.add_scalar("val_loss", valid_obj, epoch)
+        writer.add_scalar("val_acc", valid_acc, epoch)
+        writer.add_scalar("lr", optimizer.param_groups[0]['lr'], epoch)
 
         if valid_acc > best_acc:
             best_acc = valid_acc
@@ -232,7 +233,7 @@ def main():
             )
         if args.scheduler == "warmup" and epoch > args.warm:
             scheduler.step()
-        elif not args.sheduler == "warmup":
+        elif not args.scheduler == "warmup":
             scheduler.step() 
 
 

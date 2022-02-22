@@ -129,10 +129,16 @@ def main():
         weight_decay=args.weight_decay,
     )
 
-    train_transform, valid_transform = utils._data_transforms_cifar10(args)
-    train_data = dset.CIFAR10(
-        root=args.data, train=True, download=True, transform=train_transform
-    )
+    train_transform, valid_transform = utils._data_transforms_cifar(args)
+
+    if args.dataset == "cifar10":
+        train_data = dset.CIFAR10(
+            root=args.data, train=True, download=True, transform=train_transform
+        )
+    elif args.dataset == "cifar100":
+        train_data = dset.CIFAR100(
+            root=args.data, train=True, download=True, transform=train_transform
+        )
 
     num_train = len(train_data)
     indices = list(range(num_train))
