@@ -5,6 +5,9 @@ module load  cuda/11.1
 module load cudnn/8.2.1_cuda11.x
 source activate hb
 
+export PYTHONUNBUFFERED=1
+
+
 # python tools/search.py --model_name rf_p1 
 # python tools/search.py --model_name rf_p2 
 # python tools/search.py --model_name rf_p3 

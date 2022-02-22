@@ -102,7 +102,7 @@ def _data_transforms_cifar(args):
     CIFAR100_STD = [0.1942, 0.1918, 0.1958]
 
     if args.dataset == "cifar10":
-        CIFAR10_MEAN, CIFAR_STD = CIFAR10_MEAN, CIFAR10_STD 
+        CIFAR_MEAN, CIFAR_STD = CIFAR10_MEAN, CIFAR10_STD 
     elif args.dataset == "cifar100":
         CIFAR_MEAN, CIFAR_STD = CIFAR100_MEAN, CIFAR100_STD
     else:

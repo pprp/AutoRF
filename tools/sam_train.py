@@ -1,23 +1,24 @@
 import argparse
 import os
 import sys
+
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 
+import space.genotypes as genotypes
 import torch
 import torchvision
+from scripts.studentnet import Network
+from timm.loss import LabelSmoothingCrossEntropy
 from torch.utils.data import DataLoader
 from torchvision import transforms
 from torchvision.datasets import CIFAR10, CIFAR100
-from timm.loss import LabelSmoothingCrossEntropy
 # from homura.vision.models.cifar_resnet import wrn28_2, wrn28_10, resnet20, resnet56, resnext29_32x4d
 from utils.asam import ASAM, SAM
-import space.genotypes as genotypes
-
-from retrain.studentnet import Network
+from utils.utils import Cutout
 
 
-def load_cifar(data_loader, batch_size=256, num_workers=2):
+def load_cifar(data_loader, batch_size=256, num_workers=4):
     if data_loader == CIFAR10:
         mean = (0.4914, 0.4822, 0.4465)
         std = (0.2023, 0.1994, 0.2010)
@@ -30,6 +31,8 @@ def load_cifar(data_loader, batch_size=256, num_workers=2):
                          transforms.RandomHorizontalFlip(),
                          transforms.ToTensor(),
                          transforms.Normalize(mean, std)])
+
+    train_transform.transforms.append(Cutout(8))
 
     test_transform = transforms.Compose([
                          transforms.ToTensor(),

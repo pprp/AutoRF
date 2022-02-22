@@ -98,9 +98,10 @@ fh = logging.FileHandler(os.path.join(args.save, "log.txt"))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
-
-CIFAR_CLASSES = 10
-
+if args.dataset == "cifar10":
+    CIFAR_CLASSES = 10
+else:
+    CIFAR_CLASSES = 100 
 
 def main():
     if not torch.cuda.is_available():

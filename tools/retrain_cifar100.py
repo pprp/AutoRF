@@ -29,7 +29,7 @@ from utils.warmup import WarmUpLR
 
 import space.genotypes as genotypes
 
-from retrain.studentnet import Network
+from scripts.studentnet import Network
 
 # from conf import settings
 # from utils import  , ,  \

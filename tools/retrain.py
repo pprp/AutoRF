@@ -21,8 +21,9 @@ from torch.autograd import Variable
 from torch.cuda.amp import autocast
 from utils.labelsmooth import LSR
 from utils.warmup import WarmUpLR
+from utils.asam import ASAM, SAM
 
-from retrain.studentnet import Network
+from scripts.studentnet import Network
 
 parser = argparse.ArgumentParser("cifar")
 
@@ -90,6 +91,12 @@ parser.add_argument(
 parser.add_argument(
     "--scheduler", type=str, default="cosine", help="scheduler choose from cosine, steplr, warmup"
 )
+
+parser.add_argument(
+    "--minimizer", default=None, type=str, help="None or ASAM, SAM"
+)
+parser.add_argument("--rho", default=0.5, type=float, help="Rho for ASAM.")
+parser.add_argument("--eta", default=0.0, type=float, help="Eta for ASAM.")
 
 parser.add_argument(
     "--warm", type=int, default=5, help="warmup epoch numbers"
@@ -185,16 +192,19 @@ def main():
             weight_decay=args.weight_decay,
             # nesterov=True
         )
+    
+    if args.minimizer:
+        minimizer = eval(args.minimizer)(optimizer, model, rho=args.rho, eta=args.eta)
 
     if args.scheduler == "cosine":
         scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        optimizer, float(args.epochs), eta_min=args.learning_rate_min,
+        minimizer.optimizer if args.minimizer else optimizer, float(args.epochs), eta_min=args.learning_rate_min,
     )
     elif args.scheduler == "steplr":
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(minimizer.optimizer if args.minimizer else optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
     elif args.scheduler == "warmup":
-        warmup_scheduler = WarmUpLR(optimizer, args.warm * len(train_queue))
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
+        warmup_scheduler = WarmUpLR(minimizer.optimizer if args.minimizer else optimizer, args.warm * len(train_queue))
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(minimizer.optimizer if args.minimizer else optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
 
     best_acc = 0.0
     writer = SummaryWriter(os.path.join("exps/retrain", args.save))
@@ -205,7 +215,10 @@ def main():
 
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
-        train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+        if args.minimizer:
+            train_acc, train_obj = train_asam(train_queue, model, criterion, optimizer, minimizer)
+        else:
+            train_acc, train_obj = train(train_queue, model, criterion, optimizer)
         # train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
 
         # logging.info("train_acc %f", train_acc)
@@ -337,6 +350,39 @@ def train(train_queue, model, criterion, optimizer):
 
     return top1.avg, objs.avg
 
+def train_asam(train_queue, model, criterion, optimizer, minimizer):
+    objs = utils.AvgrageMeter()
+    top1 = utils.AvgrageMeter()
+    top5 = utils.AvgrageMeter()
+
+    for step, (input, target) in enumerate(train_queue):
+        model.train()
+        n = input.size(0)
+
+        input = Variable(input, requires_grad=False).cuda()
+        target = Variable(target, requires_grad=False).cuda()
+        # optimizer.zero_grad()
+        logits = model(input)
+        loss = criterion(logits, target)
+
+        loss.mean().backward()
+        nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
+        # optimizer.step()
+        minimizer.ascent_step() 
+
+        criterion(model(input), target).mean().backward() 
+        minimizer.descent_step() 
+
+        prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
+        objs.update(loss.item(), n)
+        top1.update(prec1.item(), n)
+        top5.update(prec5.item(), n)
+
+        # if step % args.report_freq == 0:
+        #     logging.info("train %03d %.3f %.2f %.2f", step,
+        #                  objs.avg, top1.avg, top5.avg)
+
+    return top1.avg, objs.avg
 
 def infer(test_queue, model, criterion):
     objs = utils.AvgrageMeter()
@@ -358,6 +404,8 @@ def infer(test_queue, model, criterion):
             top5.update(prec5.item(), n)
 
     return top1.avg, objs.avg
+
+
 
 
 if __name__ == "__main__":

@@ -92,6 +92,9 @@ export PYTHONUNBUFFERED=1
 # python tools/retrain.py --model_base 'rf_resnet56' --model_name  'rf_resnet56_P1_cutout8_bs128' --arch P1 --cutout --cutout_length 8 --batch_size 128
 
 
+python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet32_P1_cutout8_bs128_asam' --arch P1 --cutout --cutout_length 8 --minimizer "ASAM" --batch_size 128
+
+
 #########################################################################
 
 # CIFAR100 数据集相关实验 
@@ -280,15 +283,19 @@ export PYTHONUNBUFFERED=1
 #                         --scheduler 'warmup' \
 #                         --model_name 'rf_resnet56_cifar100_cutout8_bs128_ls_warmup' 
 
-python tools/retrain.py --model_base 'rf_resnet56' \
-                        --dataset 'cifar100' \
-                        --cutout \
-                        --cutout_length 8 \
-                        --arch P1 \
-                        --batch_size 128 \
-                        --label_smooth \
-                        --epochs 600 \
-                        --scheduler 'cosine' \
-                        --no_bias_decay \
-                        --learning_rate 0.04 \
-                        --model_name 'cifar100_rf_resnet56_cutout8_bs128_ls_cosine_no_bias_decay_lr0.04' 
+# python tools/retrain.py --model_base 'rf_resnet56' \
+#                         --dataset 'cifar100' \
+#                         --cutout \
+#                         --cutout_length 8 \
+#                         --arch P1 \
+#                         --batch_size 128 \
+#                         --label_smooth \
+#                         --epochs 600 \
+#                         --scheduler 'cosine' \
+#                         --no_bias_decay \
+#                         --learning_rate 0.04 \
+#                         --model_name 'cifar100_rf_resnet56_cutout8_bs128_ls_cosine_no_bias_decay_lr0.04' 
+
+
+
+
