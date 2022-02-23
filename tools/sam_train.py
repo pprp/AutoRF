@@ -8,7 +8,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 import space.genotypes as genotypes
 import torch
 import torchvision
-from scripts.studentnet import Network
+from retrain.studentnet import Network
 from timm.loss import LabelSmoothingCrossEntropy
 from torch.utils.data import DataLoader
 from torchvision import transforms

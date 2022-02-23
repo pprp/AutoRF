@@ -14,4 +14,9 @@ export PYTHONUNBUFFERED=1
 
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "P1" --rho 1.0 --epochs 500 | tee "./exps/sam_train/sam_train_cifar100_resnet20_cutout8_epoch500.log"
 
-python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "P1" --rho 1.0 --epochs 500 | tee "./exps/sam_train/sam_train_cifar100_resnet32_cutout8_epoch500.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "P1" --rho 1.0 --epochs 500 | tee "./exps/sam_train/sam_train_cifar100_resnet32_cutout8_epoch500.log"
+
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/sam_train/sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/sam_train/sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/sam_train/sam_train_cifar100_resnet56_cutout8_epoch200.log"

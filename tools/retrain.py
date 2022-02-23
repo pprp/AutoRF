@@ -23,7 +23,7 @@ from utils.labelsmooth import LSR
 from utils.warmup import WarmUpLR
 from utils.asam import ASAM, SAM
 
-from scripts.studentnet import Network
+from retrain.studentnet import Network
 
 parser = argparse.ArgumentParser("cifar")
 

@@ -5,8 +5,10 @@ import torch.nn.functional as F
 from torch.autograd import Variable
 # from space.spaces import PRIMITIVES
 # from space.genotypes import Genotype
-import retrain.basemodel as bm
+# import retrain.basemodel as bm
 # import basemodel as bm
+# import retrain.resnet_c10 as ms
+import retrain.resnet_c100 as ms 
 
 
 class Network(nn.Module):
@@ -14,7 +16,7 @@ class Network(nn.Module):
         super(Network, self).__init__()
         self._num_classes = num_classes
         self.genotype = genotype
-        self.model = bm.__dict__[model_base](num_classes=self._num_classes,
+        self.model = ms.__dict__[model_base](num_classes=self._num_classes,
                                              genotype=self.genotype, dropout=dropout)
 
     def forward(self, x):

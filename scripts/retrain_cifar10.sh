@@ -78,7 +78,7 @@ export PYTHONUNBUFFERED=1
 # 训练resnet20以外的方案 
 
 # 运行中
-# python tools/retrain.py --model_base 'rf_resnet20' --model_name 'rf_resnet32_P1_cutout8_ls_wo_drop' --arch P1 --cutout --cutout_length 8  
+python tools/retrain.py --model_base 'rf_resnet20' --dataset "cifar100" --model_name 'tttt_rf_resnet20_P1_cutout8_ls_wo_drop' --arch P1 --cutout --cutout_length 8  
 
 # python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet32_P1_cutout8_ls' --arch P1 --cutout --cutout_length 8 
 # python tools/retrain.py --model_base 'rf_resnet56' --model_name 'rf_resnet56_P1_cutout8_ls' --arch P1 --cutout --cutout_length 8 
@@ -92,7 +92,7 @@ export PYTHONUNBUFFERED=1
 # python tools/retrain.py --model_base 'rf_resnet56' --model_name  'rf_resnet56_P1_cutout8_bs128' --arch P1 --cutout --cutout_length 8 --batch_size 128
 
 
-python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet32_P1_cutout8_bs128_asam' --arch P1 --cutout --cutout_length 8 --minimizer "ASAM" --batch_size 128
+# python tools/retrain.py --model_base 'rf_resnet32' --model_name 'rf_resnet32_P1_cutout8_bs128_asam' --arch P1 --cutout --cutout_length 8 --minimizer "ASAM" --batch_size 128
 
 
 #########################################################################
