@@ -106,7 +106,7 @@ def _data_transforms_cifar(args):
     elif args.dataset == "cifar100":
         CIFAR_MEAN, CIFAR_STD = CIFAR100_MEAN, CIFAR100_STD
     else:
-        raise "Not support"
+        return None, None
 
 
     train_transform = transforms.Compose(

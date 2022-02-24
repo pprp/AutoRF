@@ -26,4 +26,8 @@ export PYTHONUNBUFFERED=1
 
 
 # cifar100 
-python tools/search.py --dataset 'cifar100' --model_name "cifar100_rf" --cutout --cutout_length 8 
+# python tools/search.py --dataset 'cifar100' --model_name "cifar100_rf" --cutout --cutout_length 8 
+
+# imagenet-mini 
+
+python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'

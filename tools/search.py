@@ -14,7 +14,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.utils
 import torchvision.datasets as dset
-
+import torchvision.transforms as transforms
 
 import utils.utils as utils
 from torch.autograd import Variable
@@ -99,9 +99,11 @@ fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
 if args.dataset == "cifar10":
-    CIFAR_CLASSES = 10
-else:
-    CIFAR_CLASSES = 100 
+    NUM_CLASSES = 10
+elif args.dataset == "cifar100":
+    NUM_CLASSES = 100 
+elif args.dataset == "imagenet":
+    NUM_CLASSES = 1000
 
 def main():
     if not torch.cuda.is_available():
@@ -119,7 +121,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     criterion = criterion.cuda()
-    model = Network(num_classes=CIFAR_CLASSES)
+    model = Network(num_classes=NUM_CLASSES, model_name=args.model_name)
     model = model.cuda()
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 
@@ -140,6 +142,16 @@ def main():
         train_data = dset.CIFAR100(
             root=args.data, train=True, download=True, transform=train_transform
         )
+    elif args.dataset == "imagenet":
+        train_data = dset.ImageFolder(
+            args.data,
+            transform=transforms.Compose([
+        transforms.RandomResizedCrop(224, scale=(0.2, 1.0)), 
+        transforms.RandomHorizontalFlip(),
+        transforms.ToTensor(),
+        transforms.Normalize(mean=[0.485, 0.456, 0.406],
+                                 std=[0.229, 0.224, 0.225]),
+    ]))
 
     num_train = len(train_data)
     indices = list(range(num_train))

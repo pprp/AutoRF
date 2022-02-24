@@ -1,20 +1,22 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from space.operations import *
-from torch.autograd import Variable
 from space.genotypes import Genotype
+from space.operations import *
 from space.spaces import PRIMITIVES
-from search.basemodel import *
+from torch.autograd import Variable
 
+from search.components import *
+from .resnet_cifar import * 
+from .mobilenetv2 import * 
 
 class Network(nn.Module):
-    def __init__(self, num_classes):
+    def __init__(self, num_classes, model_name):
         super(Network, self).__init__()
         self._num_classes = num_classes
         self._criterion = nn.CrossEntropyLoss().cuda()
         # model = rf_resnet20() #attention_resnet34()
-        self.model = rf_resnet20(num_classes=num_classes)
+        self.model = eval(model_name)(num_classes=num_classes)
         self._steps = 3
         self._multiplier = 4
         self._initialize_alphas()
