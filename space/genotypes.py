@@ -51,3 +51,7 @@ P6 = Genotype(normal=[('avg_pool_5x5', 0), ('noise', 1), ('avg_pool_3x3', 0), ('
 
 # for cifar100
 Q1 = genotype = Genotype(normal=[('max_pool_3x3', 0), ('avg_pool_5x5', 0), ('max_pool_7x7', 1), ('noise', 1), ('noise', 2), ('noise', 0)], normal_concat=range(0, 4))
+
+
+# for mobilentv2 
+M1 = Genotype(normal=[('strippool', 0), ('avg_pool_3x3', 0), ('avg_pool_5x5', 1), ('avg_pool_7x7', 0), ('strippool', 2), ('noise', 1)], normal_concat=range(0, 4))

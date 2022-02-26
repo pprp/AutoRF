@@ -28,6 +28,14 @@ export PYTHONUNBUFFERED=1
 # cifar100 
 # python tools/search.py --dataset 'cifar100' --model_name "cifar100_rf" --cutout --cutout_length 8 
 
-# imagenet-mini 
+# imagenet-mini mobilenetv2 rf
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
 
-python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
+date 
+# cp -r /data/public/imagenet-mini /dev/shm
+unzip /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini
+date 
+
+
+# imagenet-mini mobilentv2 rfsa 
+python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rfsa_v2' --batch_size 64 
