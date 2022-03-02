@@ -15,6 +15,7 @@ import warnings
 
 from retrain.basemodel import *
 
+
 class InsertResNet(nn.Module):
     '''
     insert attention module 
@@ -25,10 +26,10 @@ class InsertResNet(nn.Module):
     '''
     def __init__(self, block_list, n_size, num_classes, genotype, dropout=0.):
         super(InsertResNet, self).__init__()
-        self.inplane = 16 # 16 for cifar10 64 for cifar100 
+        self.inplane = 64 # 16 for cifar10 64 for cifar100 
         self.genotype = genotype
         self.dropout = dropout
-        self.channel_in = 16
+        self.channel_in = 64
         self.conv1 = nn.Conv2d(
             3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
         )
@@ -137,14 +138,7 @@ class CifarAttentionResNet(nn.Module):
             step=self._step,
             genotype=self.genotype,
         )
-        # self.layer4 = self._make_layer(
-        #     block,
-        #     self.channel_in * 8,
-        #     blocks=n_size,
-        #     stride=2,
-        #     step=self._step,
-        #     genotype=self.genotype,
-        # )
+
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.channel_in * 4, num_classes)
 
@@ -175,8 +169,6 @@ class CifarAttentionResNet(nn.Module):
             x = layer(x)
         for i, layer in enumerate(self.layer3):
             x = layer(x)
-        # for i, layer in enumerate(self.layer4):
-        #     x = layer(x)
 
         x = self.avgpool(x)
 

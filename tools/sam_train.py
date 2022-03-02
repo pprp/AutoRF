@@ -54,6 +54,8 @@ def train(args):
     train_loader, test_loader = load_cifar(eval(args.dataset), args.batch_size)
     num_classes = 10 if args.dataset == 'CIFAR10' else 100
 
+    print(f"running cifar-{num_classes}")
+
     # Model
     # model = eval(args.model)(num_classes=num_classes).cuda()
     model = Network(args.model, num_classes, eval("genotypes.%s" % args.arch), dropout=0.).cuda()
