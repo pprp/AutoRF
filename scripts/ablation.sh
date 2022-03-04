@@ -78,3 +78,18 @@ export PYTHONUNBUFFERED=1
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
+# 目前状态为：FULLPOOL 
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN4_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN4_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN4_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN5_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN5_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN5_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN6_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN6_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN6_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
