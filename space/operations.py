@@ -11,7 +11,7 @@ class StripPool(nn.Module):
         self.pool2 = nn.AdaptiveAvgPool2d((None, 1))
 
         inter_channels = int(in_channels / 2)
-
+        
         self.conv1x1 = nn.Sequential(
             nn.Conv2d(in_channels, inter_channels, 1, bias=False),
             nn.BatchNorm2d(inter_channels),

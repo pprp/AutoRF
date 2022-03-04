@@ -46,8 +46,35 @@ export PYTHONUNBUFFERED=1
 
 ### ablation study for insert part 
 
+# 已结束：结论：参数量小的模型，插入模块后插入的越多，性能越高；参数量大的模型，插入的越少，性能越高。
+
+# C16 & C64 
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ccc' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_sam_train_cifar100_resnet20_cutout8_epoch200_ccc.log"
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_cct' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_sam_train_cifar100_resnet20_cutout8_epoch200_cct.log"
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ctt' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_sam_train_cifar100_resnet20_cutout8_epoch200_ctt.log"
 # python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ttt' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_sam_train_cifar100_resnet20_cutout8_epoch200_ttt.log"
 
+
+# C32 & C128
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ccc' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_c128_sam_train_cifar100_resnet20_cutout8_epoch200_ccc.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_cct' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_c128_sam_train_cifar100_resnet20_cutout8_epoch200_cct.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ctt' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_c128_sam_train_cifar100_resnet20_cutout8_epoch200_ctt.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20_ttt' --arch "P1" --rho 1.0 --epochs 200 | tee "./exps/ablation/insert_c128_sam_train_cifar100_resnet20_cutout8_epoch200_ttt.log"
+
+
+
+## 实验进展描述：
+## 发现混合搜索空间效果更优，因此随机搜索方法打算在混合空间进行搜索和尝试。
+# 注意：修改spaces.py中搜索空间。目前状态为：Hybrid
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN1_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN1_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN1_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN2_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN2_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN2_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"
+
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet20' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet20_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet32' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet32_cutout8_epoch200.log"
+# python tools/sam_train.py --dataset "CIFAR100" --model 'rf_resnet56' --arch "R1" --rho 1.0 --epochs 200 | tee "./exps/ablation/HYBRID_RUN3_R1_sam_train_cifar100_resnet56_cutout8_epoch200.log"

@@ -26,10 +26,10 @@ class InsertResNet(nn.Module):
     '''
     def __init__(self, block_list, n_size, num_classes, genotype, dropout=0.):
         super(InsertResNet, self).__init__()
-        self.inplane = 64 # 16 for cifar10 64 for cifar100 
+        self.inplane = 128 # 16 for cifar10 64 for cifar100 
         self.genotype = genotype
         self.dropout = dropout
-        self.channel_in = 64
+        self.channel_in = self.inplane
         self.conv1 = nn.Conv2d(
             3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
         )
