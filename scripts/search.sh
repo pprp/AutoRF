@@ -31,11 +31,19 @@ export PYTHONUNBUFFERED=1
 # imagenet-mini mobilenetv2 rf
 # python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
 
-date 
-# cp -r /data/public/imagenet-mini /dev/shm
-unzip /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini
-date 
+# date 
+# # cp -r /data/public/imagenet-mini /dev/shm
+# unzip /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini
+# date 
 
 
-# imagenet-mini mobilentv2 rfsa 
-python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rfsa_v2' --batch_size 64 
+# # imagenet-mini mobilentv2 rfsa 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rfsa_v2' --batch_size 64 
+
+########## ablation study ###########
+# 注意：修改spaces中的PRITMITIVE, 然后运行试验
+# 注意：修改model_name 名称
+
+# cifar100 small primitive
+python tools/search.py --dataset 'cifar100' --model_name "SMALL_cifar100_rf" --cutout --cutout_length 8 
+

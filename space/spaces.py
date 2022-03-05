@@ -41,6 +41,37 @@ FULLCONV_PRIMITIVES = [
     "conv_5x1_1x5",
 ]
 
+
+SMALL_PRIMITIVES = [
+    "none",
+    "noise",
+    "max_pool_3x3",
+    "avg_pool_3x3",
+    "avg_pool_3x3",
+    "avg_pool_5x5",
+]
+
+MIDDLE_PRIMITIVES = [
+    "none",
+    "noise",
+    "max_pool_3x3",
+    "max_pool_5x5",
+]
+
+LARGE_PRIMITIVES = [
+    "none",
+    "noise",
+    "max_pool_3x3",
+    "max_pool_5x5",
+    "max_pool_7x7",
+    "avg_pool_3x3",
+    "avg_pool_5x5",
+    "avg_pool_7x7",
+]
+
+
+
+
 HYBRID_PRIMITIVES = list(set([*FULLCONV_PRIMITIVES, *FULLPOOL_PRIMITIVES])) 
 
 
@@ -185,6 +216,9 @@ spatial_spaces = {
     "fullpool": FULLPOOL_PRIMITIVES,
     "fullconv": FULLCONV_PRIMITIVES,
     "hybrid": HYBRID_PRIMITIVES,
+    "small": SMALL_PRIMITIVES,
+    "middle": MIDDLE_PRIMITIVES,
+    "large": LARGE_PRIMITIVES,
 }
 
-PRIMITIVES = spatial_spaces["fullpool"]
+PRIMITIVES = spatial_spaces["small"]
