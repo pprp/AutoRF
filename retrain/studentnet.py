@@ -3,11 +3,6 @@ import torch.nn as nn
 import torch.nn.functional as F
 # from space.operations import *
 from torch.autograd import Variable
-# from space.spaces import PRIMITIVES
-# from space.genotypes import Genotype
-# import retrain.basemodel as bm
-# import basemodel as bm
-# import retrain.resnet_c10 as ms
 import retrain.resnet_c100 as ms 
 
 

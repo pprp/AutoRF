@@ -1,17 +1,18 @@
-from search.utils import DropPath
-from utils.utils import drop_path
-from torchvision.models import ResNet
-from torch.utils.model_zoo import load_url as load_state_dict_from_url
-from torch.autograd import Variable
-from space.spaces import OPS
-from space.operations import *
-import torch.nn as nn
-import torch
 import os
 import pdb
 import sys
-from collections import namedtuple
 import warnings
+from collections import namedtuple
+
+import torch
+import torch.nn as nn
+from search.utils import DropPath
+from space.operations import *
+from space.spaces import OPS
+from torch.autograd import Variable
+from torch.utils.model_zoo import load_url as load_state_dict_from_url
+from torchvision.models import ResNet
+from utils.utils import drop_path
 
 from retrain.basemodel import *
 
@@ -24,7 +25,7 @@ class InsertResNet(nn.Module):
     C T T: 两个attention 
     T T T: 全attention
     '''
-    def __init__(self, block_list, n_size, num_classes, genotype, dropout=0.):
+    def __init__(self, block_list, n_size, num_classes, genotype, dropout=0., PRIMITIVES=None):
         super(InsertResNet, self).__init__()
         self.inplane = 128 # 16 for cifar10 64 for cifar100 
         self.genotype = genotype
@@ -43,6 +44,7 @@ class InsertResNet(nn.Module):
             stride=1,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer2 = self._make_layer(
             block_list[1],
@@ -51,6 +53,7 @@ class InsertResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer3 = self._make_layer(
             block_list[2],
@@ -59,6 +62,7 @@ class InsertResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.channel_in * 4, num_classes)
@@ -71,11 +75,11 @@ class InsertResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block, planes, blocks, stride, step, genotype):
+    def _make_layer(self, block, planes, blocks, stride, step, genotype, PRIMITIVES):
         strides = [stride] + [1] * (blocks - 1)
         self.layers = nn.ModuleList()
         for stride in strides:
-            Block = block(self.inplane, planes, stride, step, genotype)
+            Block = block(self.inplane, planes, stride, step, genotype, PRIMITIVES)
             self.layers += [Block]
             self.inplane = planes
         return self.layers
@@ -102,7 +106,7 @@ class InsertResNet(nn.Module):
         return x
 
 class CifarAttentionResNet(nn.Module):
-    def __init__(self, block, n_size, num_classes, genotype, dropout=0.):
+    def __init__(self, block, n_size, num_classes, genotype, dropout=0., PRIMITIVES=None):
         super(CifarAttentionResNet, self).__init__()
         self.inplane = 64 # 16 for cifar10 64 for cifar100 
         self.genotype = genotype
@@ -121,6 +125,7 @@ class CifarAttentionResNet(nn.Module):
             stride=1,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer2 = self._make_layer(
             block,
@@ -129,6 +134,7 @@ class CifarAttentionResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer3 = self._make_layer(
             block,
@@ -137,6 +143,7 @@ class CifarAttentionResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
+            PRIMITIVES=PRIMITIVES,
         )
 
         self.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -150,11 +157,11 @@ class CifarAttentionResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block, planes, blocks, stride, step, genotype):
+    def _make_layer(self, block, planes, blocks, stride, step, genotype, PRIMITIVES):
         strides = [stride] + [1] * (blocks - 1)
         self.layers = nn.ModuleList()
         for stride in strides:
-            Block = block(self.inplane, planes, stride, step, genotype)
+            Block = block(self.inplane, planes, stride, step, genotype, PRIMITIVES)
             self.layers += [Block]
             self.inplane = planes
         return self.layers

@@ -47,8 +47,6 @@ SMALL_PRIMITIVES = [
     "noise",
     "max_pool_3x3",
     "avg_pool_3x3",
-    "avg_pool_3x3",
-    "avg_pool_5x5",
 ]
 
 MIDDLE_PRIMITIVES = [
@@ -56,6 +54,8 @@ MIDDLE_PRIMITIVES = [
     "noise",
     "max_pool_3x3",
     "max_pool_5x5",
+    "avg_pool_3x3",
+    "avg_pool_5x5",
 ]
 
 LARGE_PRIMITIVES = [
@@ -221,4 +221,3 @@ spatial_spaces = {
     "large": LARGE_PRIMITIVES,
 }
 
-PRIMITIVES = spatial_spaces["small"]

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from space.genotypes import Genotype
 from space.operations import *
-from space.spaces import PRIMITIVES
+from space.spaces import spatial_spaces
 from torch.autograd import Variable
 
 from search.components import *
@@ -11,12 +11,18 @@ from .resnet_cifar import *
 from .mobilenetv2 import * 
 
 class Network(nn.Module):
-    def __init__(self, num_classes, model_name):
+    def __init__(self, num_classes, model_name, primitives):
+        '''
+        primitive: autola fullpool fullconv hybrid small middle large
+        '''
+
         super(Network, self).__init__()
+
+        self.PRIMITIVES = spatial_spaces[primitives]
         self._num_classes = num_classes
         self._criterion = nn.CrossEntropyLoss().cuda()
         # model = rf_resnet20() #attention_resnet34()
-        self.model = eval(model_name)(num_classes=num_classes)
+        self.model = eval(model_name)(num_classes=num_classes, PRIMITIVES=self.PRIMITIVES)
         self._steps = 3
         self._multiplier = 4
         self._initialize_alphas()
@@ -38,7 +44,7 @@ class Network(nn.Module):
 
     def _initialize_alphas(self):
         k = sum(1 for i in range(self._steps) for n in range(1 + i))
-        num_ops = len(PRIMITIVES)
+        num_ops = len(self.PRIMITIVES)
 
         self.alphas_normal = Variable(
             1e-3 * torch.randn(k, num_ops).cuda(), requires_grad=True
@@ -63,16 +69,16 @@ class Network(nn.Module):
                     key=lambda x: -max(
                         W[x][k]
                         for k in range(len(W[x]))
-                        if k != PRIMITIVES.index("none")
+                        if k != self.PRIMITIVES.index("none")
                     ),
                 )[: i + 1]
                 for j in edges:
                     k_best = None
                     for k in range(len(W[j])):
-                        if k != PRIMITIVES.index("none"):
+                        if k != self.PRIMITIVES.index("none"):
                             if k_best is None or W[j][k] > W[j][k_best]:
                                 k_best = k
-                    gene.append((PRIMITIVES[k_best], j))
+                    gene.append((self.PRIMITIVES[k_best], j))
                 start = end
                 n += 1
             return gene

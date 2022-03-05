@@ -2,10 +2,10 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .components import CifarRFSABasicBlock, CifarRFBasicBlock, CifarAttentionBasicBlock
+from .components import CifarRFSABasicBlock, CifarRFBasicBlock
 
 class CifarAttentionResNet(nn.Module):
-    def __init__(self, block, n_size, num_classes=10):
+    def __init__(self, block, n_size, num_classes=10, PRIMITIVES=None):
         super(CifarAttentionResNet, self).__init__()
         self._steps = 4
         self.inplane = 16
@@ -16,13 +16,13 @@ class CifarAttentionResNet(nn.Module):
         self.bn1 = nn.BatchNorm2d(self.inplane)
         self.relu = nn.ReLU()
         self.layer1 = self._make_layer(
-            block, self.channel_in, blocks=n_size, stride=1, step=self._steps
+            block, self.channel_in, blocks=n_size, stride=1, step=self._steps,PRIMITIVES=PRIMITIVES,
         )
         self.layer2 = self._make_layer(
-            block, self.channel_in * 2, blocks=n_size, stride=2, step=self._steps
+            block, self.channel_in * 2, blocks=n_size, stride=2, step=self._steps, PRIMITIVES=PRIMITIVES,
         )
         self.layer3 = self._make_layer(
-            block, self.channel_in * 4, blocks=n_size, stride=2, step=self._steps
+            block, self.channel_in * 4, blocks=n_size, stride=2, step=self._steps,PRIMITIVES=PRIMITIVES,
         )
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.channel_in * 4, num_classes)
@@ -35,11 +35,11 @@ class CifarAttentionResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block, planes, blocks, stride, step):
+    def _make_layer(self, block, planes, blocks, stride, step, PRIMITIVES):
         strides = [stride] + [1] * (blocks - 1)
         self.layers = nn.ModuleList()
         for stride in strides:
-            Block = block(self.inplane, planes, stride, step)
+            Block = block(self.inplane, planes, stride, step, PRIMITIVES)
             self.layers += [Block]
             self.inplane = planes
         return self.layers
@@ -88,10 +88,4 @@ def rf_resnet56(**kwargs):
 
 def rf_resnet110(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 18, **kwargs)
-    return model
-
-
-def la_resnet20(**kwargs):
-    """Constructs a ResNet-20 model."""
-    model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
     return model

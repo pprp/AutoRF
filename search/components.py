@@ -6,9 +6,9 @@ import torch.nn.functional as F
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+from space.spaces import OPS 
 from space.genotypes import *
 from space.operations import *
-from space.spaces import *
 from torchvision.models import ResNet
 from search.utils import DropPath 
 
@@ -37,7 +37,7 @@ class SE(nn.Module):
 
 
 class MixedOp(nn.Module):
-    def __init__(self, C, stride, affine=False):
+    def __init__(self, C, stride, affine=False, PRIMITIVES=None):
         super(MixedOp, self).__init__()
         self._ops = nn.ModuleList()
         for primitive in PRIMITIVES:
@@ -68,7 +68,7 @@ class CMlp(nn.Module):
         return x
 
 class ReceptiveFieldSelfAttention(nn.Module):
-    def __init__(self, C, steps=3, reduction=False, se=True, drop_prob=0. , mlp_ratio=2. ):
+    def __init__(self, C, steps=3, reduction=False, se=True, drop_prob=0. , mlp_ratio=2. ,PRIMITIVES=None):
         super(ReceptiveFieldSelfAttention, self).__init__()
         self._ops = nn.ModuleList()
         self._C = C
@@ -82,7 +82,7 @@ class ReceptiveFieldSelfAttention(nn.Module):
 
         for i in range(self._steps):
             for j in range(i + 1):
-                op = MixedOp(C // 4 , self._stride, False)
+                op = MixedOp(C // 4 , self._stride, False, PRIMITIVES=PRIMITIVES)
                 self._ops.append(op)
 
         self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
@@ -138,7 +138,7 @@ class ReceptiveFieldSelfAttention(nn.Module):
         return node_out
 
 class ReceptiveFieldAttention(nn.Module):
-    def __init__(self, C, steps=3, reduction=False, se=True):
+    def __init__(self, C, steps=3, reduction=False, se=True, PRIMITIVES=None):
         super(ReceptiveFieldAttention, self).__init__()
         self._ops = nn.ModuleList()
         self._C = C
@@ -149,7 +149,7 @@ class ReceptiveFieldAttention(nn.Module):
 
         for i in range(self._steps):
             for j in range(i + 1):
-                op = MixedOp(C // 4 , self._stride, False)
+                op = MixedOp(C // 4 , self._stride, False, PRIMITIVES=PRIMITIVES)
                 self._ops.append(op)
 
         self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
@@ -192,66 +192,13 @@ class ReceptiveFieldAttention(nn.Module):
         return node_out
 
 
-class Attention(nn.Module):
-    def __init__(self, steps, C):
-        super(Attention, self).__init__()
-        self._steps = 4
-        self._C = C
-        self._ops = nn.ModuleList()
-        self._bns = nn.ModuleList()
-        self.C_in = self._C // 4
-        self.C_out = self._C
-        self.width = 4
-        for i in range(self._steps):
-            for j in range(1 + i):
-                stride = 1
-                op = MixedOp(self.C_in, stride)
-                self._ops.append(op)
-        self.channel_back = nn.Sequential(
-            nn.Conv2d(
-                self.C_in * 5, self._C, kernel_size=1, padding=0, groups=1, bias=False
-            ),
-            nn.BatchNorm2d(self._C),
-            nn.ReLU(inplace=False),
-            nn.Conv2d(self._C, self._C, kernel_size=1, padding=0, groups=1, bias=False),
-            nn.BatchNorm2d(self._C),
-        )
-        self.se = SE(self.C_in, reduction=4)
-        self.se2 = SE(self.C_in * 4, reduction=16)
-
-    def forward(self, s0, weights):
-        C = s0.shape[1]
-        length = C // 4
-        spx = torch.split(s0, length, 1)
-        spx_sum = sum(spx)
-        spx_sum = self.se(spx_sum)
-        offset = 0
-        states = [spx[0]]
-        for i in range(self._steps):
-            states[0] = spx[i]
-            s = sum(
-                self._ops[offset + j](h, weights[offset + j])
-                for j, h in enumerate(states)
-            )
-            offset += len(states)
-            states.append(s)
-
-        node_concat = torch.cat(states[-self._steps :], dim=1)
-        node_concat = torch.cat((node_concat, spx_sum), dim=1)
-
-        attention_out = self.channel_back(node_concat) + s0
-        attention_out = self.se2(attention_out)
-
-        return attention_out
-
-
 def conv3x3(in_planes, out_planes, stride=1):
     return nn.Conv2d(
         in_planes, out_planes, kernel_size=3, stride=stride, padding=1, bias=False
     )
 
 class CifarRFSABasicBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride, step):
+    def __init__(self, inplanes, planes, stride, step, PRIMITIVES=None):
         super(CifarRFSABasicBlock, self).__init__()
         self._steps = step
         self.conv1 = conv3x3(inplanes, planes, stride)
@@ -268,7 +215,7 @@ class CifarRFSABasicBlock(nn.Module):
             self.downsample = lambda x: x
         self.stride = stride
 
-        self.attention = ReceptiveFieldSelfAttention(planes)
+        self.attention = ReceptiveFieldSelfAttention(planes, PRIMITIVES=PRIMITIVES)
 
     def forward(self, x, weights):
         residual = self.downsample(x)
@@ -284,7 +231,7 @@ class CifarRFSABasicBlock(nn.Module):
         return out
 
 class CifarRFBasicBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride, step):
+    def __init__(self, inplanes, planes, stride, step, PRIMITIVES=None):
         super(CifarRFBasicBlock, self).__init__()
         self._steps = step
         self.conv1 = conv3x3(inplanes, planes, stride)
@@ -301,7 +248,7 @@ class CifarRFBasicBlock(nn.Module):
             self.downsample = lambda x: x
         self.stride = stride
 
-        self.attention = ReceptiveFieldAttention(planes)
+        self.attention = ReceptiveFieldAttention(planes, PRIMITIVES=PRIMITIVES)
 
     def forward(self, x, weights):
         residual = self.downsample(x)
@@ -315,42 +262,6 @@ class CifarRFBasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
-
-class CifarAttentionBasicBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride, step):
-        super(CifarAttentionBasicBlock, self).__init__()
-        self._steps = step
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.relu = nn.ReLU()
-        self.conv2 = conv3x3(planes, planes)
-        self.bn2 = nn.BatchNorm2d(planes)
-        if inplanes != planes:
-            self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(planes),
-            )
-        else:
-            self.downsample = lambda x: x
-        self.stride = stride
-
-        self.attention = Attention(self._steps, planes)
-
-    def forward(self, x, weights):
-        residual = self.downsample(x)
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.attention(out, weights)
-        out = out + residual
-        out = self.relu(out)
-
-        return out
-
-
-
 
 
 class CifarAttentionResNet34(nn.Module):
@@ -413,21 +324,3 @@ class CifarAttentionResNet34(nn.Module):
         x = self.fc(x)
 
         return x
-
-
-
-if __name__ == "__main__":
-    # m = ReceptiveFieldAttention(16)
-    # m = CifarRFBasicBlock(16, 32, stride=1, step=4)
-    # m = CifarRFSABasicBlock(16, 32, 1, step=3)
-    m = ReceptiveFieldSelfAttention(16)
-
-    input = torch.zeros(4, 16, 32, 32)
-    k = sum(1 for i in range(4) for n in range(1 + i))
-
-    weights = torch.randn(k, len(PRIMITIVES))
-    # print(m)
-
-    output = m(input, weights)
-
-    print(output.shape)

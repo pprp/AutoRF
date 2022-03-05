@@ -5,7 +5,7 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 from collections import namedtuple
-from space.spaces import PRIMITIVES 
+from space.spaces import spatial_spaces
 
 Genotype = namedtuple("Genotype", "normal normal_concat")
 
@@ -65,6 +65,7 @@ Q1 = genotype = Genotype(normal=[('max_pool_3x3', 0), ('avg_pool_5x5', 0), ('max
 M1 = Genotype(normal=[('strippool', 0), ('avg_pool_3x3', 0), ('avg_pool_5x5', 1), ('avg_pool_7x7', 0), ('strippool', 2), ('noise', 1)], normal_concat=range(0, 4))
 
 # random search for ablation study
+PRIMITIVES = spatial_spaces['small'] # TODO more aligent way
 R1 = Genotype(
     normal=[(random.choice(PRIMITIVES), 0), 
             (random.choice(PRIMITIVES), random.choice([0,1])), (random.choice(PRIMITIVES), random.choice([0,1])), 

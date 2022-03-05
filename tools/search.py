@@ -7,6 +7,9 @@ import time
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+# from space.genotypes import PRIMITIVES
+
+
 import numpy as np
 import torch
 import torch.backends.cudnn as cudnn
@@ -34,6 +37,9 @@ parser.add_argument(
 
 parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
 parser.add_argument("--model_name", type=str, default="searching", help="backbone")
+parser.add_argument("--comments", type=str, default="cifar100", help="backbone")
+
+
 parser.add_argument("--batch_size", type=int, default=128, help="batch size")
 parser.add_argument(
     "--learning_rate", type=float, default=0.025, help="init learning rate"
@@ -80,8 +86,8 @@ parser.add_argument(
 )
 args = parser.parse_args()
 
-args.save = "{}-{}-{}".format(
-    args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
+args.save = "{}-{}-{}-{}".format(
+    args.comments, args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
 )
 args.save = os.path.join("exps/search", args.save)
 
@@ -121,7 +127,7 @@ def main():
 
     criterion = nn.CrossEntropyLoss()
     criterion = criterion.cuda()
-    model = Network(num_classes=NUM_CLASSES, model_name=args.model_name)
+    model = Network(num_classes=NUM_CLASSES, model_name=args.model_name, primitives=args.primitives)
     model = model.cuda()
     logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
 

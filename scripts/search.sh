@@ -38,12 +38,17 @@ export PYTHONUNBUFFERED=1
 
 
 # # imagenet-mini mobilentv2 rfsa 
-# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rfsa_v2' --batch_size 64 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'mobilenet_rfsa_v2' --batch_size 64 
 
 ########## ablation study ###########
 # 注意：修改spaces中的PRITMITIVE, 然后运行试验
-# 注意：修改model_name 名称
+# 注意：修改model_name名称 设置为resnet20模式
 
 # cifar100 small primitive
-python tools/search.py --dataset 'cifar100' --model_name "SMALL_cifar100_rf" --cutout --cutout_length 8 
+python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "small_primitive" --primitives "large"
 
+# cifar100 middle primitive
+# python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "middle_primitive" --primitives "middle"
+
+# cifar100 large primitive
+# python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "large_primitive" --primitives "large"
