@@ -106,7 +106,7 @@ class InsertResNet(nn.Module):
         return x
 
 class CifarAttentionResNet(nn.Module):
-    def __init__(self, block, n_size, num_classes, genotype, dropout=0., PRIMITIVES=None):
+    def __init__(self, block, n_size, num_classes, genotype, dropout=0.):
         super(CifarAttentionResNet, self).__init__()
         self.inplane = 64 # 16 for cifar10 64 for cifar100 
         self.genotype = genotype
@@ -125,7 +125,6 @@ class CifarAttentionResNet(nn.Module):
             stride=1,
             step=self._step,
             genotype=self.genotype,
-            PRIMITIVES=PRIMITIVES,
         )
         self.layer2 = self._make_layer(
             block,
@@ -134,7 +133,6 @@ class CifarAttentionResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
-            PRIMITIVES=PRIMITIVES,
         )
         self.layer3 = self._make_layer(
             block,
@@ -143,7 +141,6 @@ class CifarAttentionResNet(nn.Module):
             stride=2,
             step=self._step,
             genotype=self.genotype,
-            PRIMITIVES=PRIMITIVES,
         )
 
         self.avgpool = nn.AdaptiveAvgPool2d(1)
@@ -157,11 +154,11 @@ class CifarAttentionResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block, planes, blocks, stride, step, genotype, PRIMITIVES):
+    def _make_layer(self, block, planes, blocks, stride, step, genotype):
         strides = [stride] + [1] * (blocks - 1)
         self.layers = nn.ModuleList()
         for stride in strides:
-            Block = block(self.inplane, planes, stride, step, genotype, PRIMITIVES)
+            Block = block(self.inplane, planes, stride, step, genotype)
             self.layers += [Block]
             self.inplane = planes
         return self.layers
@@ -210,6 +207,14 @@ def resnet56(**kwargs):
 
 def rf_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
+    return model
+
+def rfbngelu_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFBNGELUBasicBlock, 3, **kwargs)
+    return model
+
+def rfgelubn_resnet20(**kwargs):
+    model = CifarAttentionResNet(CifarRFGELUBNBasicBlock, 3, **kwargs)
     return model
 
 def rf_resnet20_ccc(**kwargs):

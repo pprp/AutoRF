@@ -258,8 +258,8 @@ def infer(valid_queue, model, criterion):
     model.eval()
 
     for step, (input, target) in enumerate(valid_queue):
-        input = Variable(input, volatile=True).cuda()
-        target = Variable(target, volatile=True).cuda()
+        input = input.cuda()
+        target = target.cuda()
 
         logits = model(input)
         loss = criterion(logits, target)

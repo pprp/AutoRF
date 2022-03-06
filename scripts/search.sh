@@ -45,7 +45,7 @@ export PYTHONUNBUFFERED=1
 # 注意：修改model_name名称 设置为resnet20模式
 
 # cifar100 small primitive
-python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "small_primitive" --primitives "large"
+python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "small_primitive" --primitives "small"
 
 # cifar100 middle primitive
 # python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "middle_primitive" --primitives "middle"

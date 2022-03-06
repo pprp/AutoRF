@@ -71,3 +71,11 @@ R1 = Genotype(
             (random.choice(PRIMITIVES), random.choice([0,1])), (random.choice(PRIMITIVES), random.choice([0,1])), 
             (random.choice(PRIMITIVES), random.choice([0,1,2])), (random.choice(PRIMITIVES), random.choice([0,1,2])), (random.choice(PRIMITIVES), random.choice([0,1,2]))], normal_concat=range(0, 4)
 )
+
+# for small middle large search space 
+
+SMALL = Genotype(normal=[('avg_pool_3x3', 0), ('noise', 1), ('noise', 0), ('noise', 2), ('noise', 1), ('noise', 0)], normal_concat=range(0, 4))
+
+MIDDLE = Genotype(normal=[('avg_pool_3x3', 0), ('avg_pool_3x3', 0), ('noise', 1), ('noise', 2), ('noise', 1), ('noise', 0)], normal_concat=range(0, 4))
+
+LARGE = Genotype(normal=[('avg_pool_3x3', 0), ('max_pool_3x3', 0), ('noise', 1), ('noise', 2), ('noise', 1), ('noise', 0)], normal_concat=range(0, 4))
