@@ -32,7 +32,7 @@ parser.add_argument(
     "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
 )
 parser.add_argument(
-    "--dataset", type=str, default="cifar10", help="cifar10 or cifar100"
+    "--dataset", type=str, default="cifar10", help="cifar10 or cifar100 or imagenet"
 )
 
 parser.add_argument("--primitives", type=str, default="fullpool", help="choose in autola, fullpool, fullconv, hybrid")
@@ -49,7 +49,7 @@ parser.add_argument(
 )
 parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
 parser.add_argument("--weight_decay", type=float, default=5e-4, help="weight decay")
-parser.add_argument("--report_freq", type=float, default=50, help="report frequency")
+parser.add_argument("--report_freq", type=float, default=200, help="report frequency")
 parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
 parser.add_argument("--epochs", type=int, default=50, help="num of training epochs")
 parser.add_argument(
@@ -64,7 +64,7 @@ parser.add_argument("--save", type=str, default="EXP", help="experiment name")
 parser.add_argument("--seed", type=int, default=2, help="random seed")
 parser.add_argument("--grad_clip", type=float, default=5, help="gradient clipping")
 parser.add_argument(
-    "--train_portion", type=float, default=0.5, help="portion of training data"
+    "--train_portion", type=float, default=0.7, help="portion of training data"
 )
 parser.add_argument(
     "--unrolled",
@@ -157,6 +157,7 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
+        transforms.RandomErasing(), 
     ]))
 
     num_train = len(train_data)
@@ -188,7 +189,7 @@ def main():
     for epoch in range(args.epochs):
         scheduler.step()
         lr = scheduler.get_lr()[0]
-        logging.info("epoch %d lr %e", epoch, lr)
+        logging.info("epoch = %d lr = %e", epoch, lr)
 
         genotype = model.genotype()
         logging.info("genotype = %s", genotype)
@@ -198,10 +199,10 @@ def main():
         train_acc, train_obj = train(
             train_queue, valid_queue, model, architect, criterion, optimizer, lr
         )
-        logging.info("train_acc %f", train_acc)
+        logging.info("train_acc = %f", train_acc)
 
         valid_acc, valid_obj = infer(valid_queue, model, criterion)
-        logging.info("valid_acc %f", valid_acc)
+        logging.info("valid_acc = %f", valid_acc)
 
         utils.save(model, os.path.join(args.save, "weights.pt"))
 
@@ -246,7 +247,7 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info("train %03d %e %f %f", step, objs.avg, top1.avg, top5.avg)
+            logging.info("train step:%03d loss:%.4f top1:%.3f top5:%.3f", step, objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
 
@@ -271,7 +272,7 @@ def infer(valid_queue, model, criterion):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info("valid %03d %e %f %f", step, objs.avg, top1.avg, top5.avg)
+            logging.info("valid step:%03d loss:%.4f top1:%.3f top5:%.3f", step, objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
 

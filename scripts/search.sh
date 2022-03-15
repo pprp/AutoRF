@@ -31,10 +31,10 @@ export PYTHONUNBUFFERED=1
 # imagenet-mini mobilenetv2 rf
 # python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
 
-# date 
-# # cp -r /data/public/imagenet-mini /dev/shm
-# unzip /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini
-# date 
+date 
+# cp -r /data/public/imagenet-mini /dev/shm
+unzip -o /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini > /dev/null
+date 
 
 
 # # imagenet-mini mobilentv2 rfsa 
@@ -45,10 +45,16 @@ export PYTHONUNBUFFERED=1
 # 注意：修改model_name名称 设置为resnet20模式
 
 # cifar100 small primitive
-python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "small_primitive" --primitives "small"
+# python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "small_primitive" --primitives "small"
 
 # cifar100 middle primitive
 # python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "middle_primitive" --primitives "middle"
 
 # cifar100 large primitive
 # python tools/search.py --dataset 'cifar100' --model_name "rf_resnet20" --cutout --cutout_length 8 --comments "large_primitive" --primitives "large"
+
+
+############# search in imagenet-mini resnet34, resnet18 rf ###########
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --arch_learning_rate 5e-5 --comments "imagenet-mini" 
+
+python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" --arch_learning_rate 1e-4 

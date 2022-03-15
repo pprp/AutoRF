@@ -7,11 +7,12 @@ from space.spaces import spatial_spaces
 from torch.autograd import Variable
 
 from search.components import *
-from .resnet_cifar import * 
+# from .resnet_cifar import * 
 from .mobilenetv2 import * 
+from .resnet_imagenet import * 
 
 class Network(nn.Module):
-    def __init__(self, num_classes, model_name, primitives):
+    def __init__(self, num_classes, model_name, primitives='fullpool'):
         '''
         primitive: autola fullpool fullconv hybrid small middle large
         '''
@@ -21,7 +22,6 @@ class Network(nn.Module):
         self.PRIMITIVES = spatial_spaces[primitives]
         self._num_classes = num_classes
         self._criterion = nn.CrossEntropyLoss().cuda()
-        # model = rf_resnet20() #attention_resnet34()
         self.model = eval(model_name)(num_classes=num_classes, PRIMITIVES=self.PRIMITIVES)
         self._steps = 3
         self._multiplier = 4
