@@ -64,7 +64,7 @@ parser.add_argument("--save", type=str, default="EXP", help="experiment name")
 parser.add_argument("--seed", type=int, default=2, help="random seed")
 parser.add_argument("--grad_clip", type=float, default=5, help="gradient clipping")
 parser.add_argument(
-    "--train_portion", type=float, default=0.7, help="portion of training data"
+    "--train_portion", type=float, default=0.5, help="portion of training data"
 )
 parser.add_argument(
     "--unrolled",
@@ -157,8 +157,16 @@ def main():
         transforms.ToTensor(),
         transforms.Normalize(mean=[0.485, 0.456, 0.406],
                                  std=[0.229, 0.224, 0.225]),
-        transforms.RandomErasing(), 
+        # transforms.RandomErasing(), 
     ]))
+
+        valid_data = dset.ImageFolder(args.data, transform=transforms.Compose([
+            transforms.Resize(256),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize([0.485, 0.456, 0.406],
+                                [0.229, 0.224, 0.225])
+        ]))
 
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -173,7 +181,7 @@ def main():
     )
 
     valid_queue = torch.utils.data.DataLoader(
-        train_data,
+        train_data if args.dataset is not "imagenet" else valid_data,
         batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
         pin_memory=True,

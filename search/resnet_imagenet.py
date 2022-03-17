@@ -9,17 +9,17 @@ from .components import ReceptiveFieldAttention
 
 
 
-model_urls = {
-    "resnet18": "https://download.pytorch.org/models/resnet18-f37072fd.pth",
-    "resnet34": "https://download.pytorch.org/models/resnet34-b627a593.pth",
-    "resnet50": "https://download.pytorch.org/models/resnet50-0676ba61.pth",
-    "resnet101": "https://download.pytorch.org/models/resnet101-63fe2227.pth",
-    "resnet152": "https://download.pytorch.org/models/resnet152-394f9c45.pth",
-    "resnext50_32x4d": "https://download.pytorch.org/models/resnext50_32x4d-7cdf4587.pth",
-    "resnext101_32x8d": "https://download.pytorch.org/models/resnext101_32x8d-8ba56ff5.pth",
-    "wide_resnet50_2": "https://download.pytorch.org/models/wide_resnet50_2-95faca4d.pth",
-    "wide_resnet101_2": "https://download.pytorch.org/models/wide_resnet101_2-32ee1156.pth",
-}
+# model_urls = {
+#     "resnet18": "https://download.pytorch.org/models/resnet18-f37072fd.pth",
+#     "resnet34": "https://download.pytorch.org/models/resnet34-b627a593.pth",
+#     "resnet50": "https://download.pytorch.org/models/resnet50-0676ba61.pth",
+#     "resnet101": "https://download.pytorch.org/models/resnet101-63fe2227.pth",
+#     "resnet152": "https://download.pytorch.org/models/resnet152-394f9c45.pth",
+#     "resnext50_32x4d": "https://download.pytorch.org/models/resnext50_32x4d-7cdf4587.pth",
+#     "resnext101_32x8d": "https://download.pytorch.org/models/resnext101_32x8d-8ba56ff5.pth",
+#     "wide_resnet50_2": "https://download.pytorch.org/models/wide_resnet50_2-95faca4d.pth",
+#     "wide_resnet101_2": "https://download.pytorch.org/models/wide_resnet101_2-32ee1156.pth",
+# }
 
 
 def conv3x3(in_planes: int, out_planes: int, stride: int = 1, groups: int = 1, dilation: int = 1) -> nn.Conv2d:
@@ -316,7 +316,7 @@ def resnet18_rf(num_classes=1000, PRIMITIVES=None, pretrained: bool = False, pro
     return _resnet("resnet18", BasicBlock, [2, 2, 2, 2], pretrained, progress, PRIMITIVES, **kwargs)
 
 
-def resnet34_rf(num_classes=1000,PRIMITIVES=None, pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
+def resnet34_rf(num_classes=1000, PRIMITIVES=None, pretrained: bool = False, progress: bool = True, **kwargs: Any) -> ResNet:
     r"""ResNet-34 model from
     `"Deep Residual Learning for Image Recognition" <https://arxiv.org/pdf/1512.03385.pdf>`_.
     Args:

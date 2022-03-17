@@ -31,10 +31,10 @@ export PYTHONUNBUFFERED=1
 # imagenet-mini mobilenetv2 rf
 # python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
 
-date 
-# cp -r /data/public/imagenet-mini /dev/shm
-unzip -o /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini > /dev/null
-date 
+# date 
+# # cp -r /data/public/imagenet-mini /dev/shm
+# unzip -o /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini > /dev/null
+# date 
 
 
 # # imagenet-mini mobilentv2 rfsa 
@@ -55,6 +55,14 @@ date
 
 
 ############# search in imagenet-mini resnet34, resnet18 rf ###########
-# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --arch_learning_rate 5e-5 --comments "imagenet-mini" 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" 
 
-python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" --arch_learning_rate 1e-4 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" 
+
+# 测试不同的数据集，看看是否是由于imagenet-mini过于简单导致的
+# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet34_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet34_rf" --arch_learning_rate 1e-4 
+
+# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet18_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet18_rf" --arch_learning_rate 1e-4 
+
+# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate 
+python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf" --arch_learning_rate 5e-5 
