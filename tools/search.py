@@ -177,7 +177,7 @@ def main():
         batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[:split]),
         pin_memory=True,
-        num_workers=6,
+        num_workers=8,
     )
 
     valid_queue = torch.utils.data.DataLoader(
@@ -185,7 +185,7 @@ def main():
         batch_size=args.batch_size,
         sampler=torch.utils.data.sampler.SubsetRandomSampler(indices[split:num_train]),
         pin_memory=True,
-        num_workers=6,
+        num_workers=8,
     )
 
     scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
@@ -264,11 +264,11 @@ def infer(valid_queue, model, criterion):
     objs = utils.AvgrageMeter()
     top1 = utils.AvgrageMeter()
     top5 = utils.AvgrageMeter()
-    model.eval()
+    # model.eval()
 
     for step, (input, target) in enumerate(valid_queue):
-        input = input.cuda()
-        target = target.cuda()
+        input = Variable(input, requires_grad=False).cuda()
+        target = Variable(target, requires_grad=False).cuda()
 
         logits = model(input)
         loss = criterion(logits, target)

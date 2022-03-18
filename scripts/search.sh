@@ -65,4 +65,13 @@ export PYTHONUNBUFFERED=1
 # python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet18_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet18_rf" --arch_learning_rate 1e-4 
 
 # 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate 
-python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf" --arch_learning_rate 5e-5 
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf" --arch_learning_rate 5e-5 
+
+# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate 
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 64  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_biglr" --arch_learning_rate 5e-5 
+
+# fix bugs in noise std=0.2 collapse at 1 epoch
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
+
+# update std from 0.2 to 1 
+python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
