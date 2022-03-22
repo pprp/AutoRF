@@ -1,3 +1,6 @@
+import math
+
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -440,54 +443,54 @@ class NoiseOp2(nn.Module):
         return noise
 
 class CosineDecayScheduler(object):
-	def __init__(self, base_lr=1.0, last_iter=0, T_max=50):
-		self.base_lr = base_lr
-		self.last_iter = last_iter
-		self.T_max = T_max
-		self.cnt = 0
+    def __init__(self, base_lr=1.0, last_iter=0, T_max=50):
+        self.base_lr = base_lr
+        self.last_iter = last_iter
+        self.T_max = T_max
+        self.cnt = 0
 
-	def decay_rate(self, step):
-		self.last_iter = step
-		decay_rate = self.base_lr * (1 + math.cos(math.pi * self.last_iter / self.T_max)) / 2.0 if self.last_iter <= self.T_max else 0
-		return decay_rate
+    def decay_rate(self, step):
+        self.last_iter = step
+        decay_rate = self.base_lr * (1 + math.cos(math.pi * self.last_iter / self.T_max)) / 2.0 if self.last_iter <= self.T_max else 0
+        return decay_rate
 
 # from noisy darts 
 class NoiseOp(nn.Module):
-	def __init__(self, noise_type='gaussian', factor=1., mean=0.0, noise_mixture="additive", decay_scheduler=None, add_noise=True):
-		super(NoiseOp, self).__init__()
-		self.noise_type = noise_type
-		self.factor = factor # factor for std
-		self.mean = mean
-		self.noise_mixture = noise_mixture
-		self.add_noise = add_noise
-		if decay_scheduler is None:
-			self.decay_scheduler = CosineDecayScheduler()
-		else:
-			self.decay_scheduler = None 
+    def __init__(self, noise_type='gaussian', factor=1., mean=0.0, noise_mixture="additive", decay_scheduler=None, add_noise=True):
+        super(NoiseOp, self).__init__()
+        self.noise_type = noise_type
+        self.factor = factor # factor for std
+        self.mean = mean
+        self.noise_mixture = noise_mixture
+        self.add_noise = add_noise
+        if decay_scheduler is None:
+            self.decay_scheduler = CosineDecayScheduler()
+        else:
+            self.decay_scheduler = None 
 
-	def forward(self, x):
-		if self.training and self.add_noise:
-			if self.noise_type == 'uniform':
-				# uniform variance is (b-a)^2/12, so a = sqrt(3*factor)
-				# uniform takes between (-1,1) * a
-				a = np.sqrt(3*self.factor)
-				noise = self.mean + (-2 * torch.rand_like(x) + 1) * a
-			elif self.noise_type == 'gaussian':
-				# normal distribution
-				std = x.std() * self.factor if self.noise_mixture == 'additive' else self.factor
-				means = self.mean + torch.zeros_like(x, device=torch.device("cuda"), requires_grad=False)
-				noise = torch.normal(means, std, out=None).cuda()
-			else:
-				assert False, 'Not supported noise type'
+    def forward(self, x):
+        if self.training and self.add_noise:
+            if self.noise_type == 'uniform':
+                # uniform variance is (b-a)^2/12, so a = sqrt(3*factor)
+                # uniform takes between (-1,1) * a
+                a = np.sqrt(3*self.factor)
+                noise = self.mean + (-2 * torch.rand_like(x) + 1) * a
+            elif self.noise_type == 'gaussian':
+                # normal distribution
+                std = x.std() * self.factor if self.noise_mixture == 'additive' else self.factor
+                means = self.mean + torch.zeros_like(x, device=torch.device("cuda"), requires_grad=False)
+                noise = torch.normal(means, std, out=None).cuda()
+            else:
+                assert False, 'Not supported noise type'
 
-			decay_rate = 1
-			
-			if self.noise_mixture == 'additive':
-				x = x + noise * decay_rate
-				# x = noise
-			elif self.noise_mixture == 'multiplicative':
-				x = x * noise * decay_rate
-			else:
-				assert False, 'Not supported noise mixture'
+            decay_rate = 1
+            
+            if self.noise_mixture == 'additive':
+                x = x + noise * decay_rate
+                # x = noise
+            elif self.noise_mixture == 'multiplicative':
+                x = x * noise * decay_rate
+            else:
+                assert False, 'Not supported noise mixture'
 
-		return x
+        return x

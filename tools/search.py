@@ -259,12 +259,12 @@ def train(train_queue, valid_queue, model, architect, criterion, optimizer, lr):
 
     return top1.avg, objs.avg
 
-
+@torch.no_grad() 
 def infer(valid_queue, model, criterion):
     objs = utils.AvgrageMeter()
     top1 = utils.AvgrageMeter()
     top5 = utils.AvgrageMeter()
-    # model.eval()
+    model.eval()
 
     for step, (input, target) in enumerate(valid_queue):
         input = Variable(input, requires_grad=False).cuda()

@@ -74,4 +74,5 @@ export PYTHONUNBUFFERED=1
 # python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
 
 # update std from 0.2 to 1 
-python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
+
