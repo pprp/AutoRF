@@ -14,7 +14,7 @@ class StripPool(nn.Module):
         self.pool2 = nn.AdaptiveAvgPool2d((None, 1))
 
         inter_channels = int(in_channels / 2)
-        
+
         self.conv1x1 = nn.Sequential(
             nn.Conv2d(in_channels, inter_channels, 1, bias=False),
             nn.BatchNorm2d(inter_channels),
@@ -45,6 +45,25 @@ class StripPool(nn.Module):
         x2 = F.interpolate(self.conv2(self.pool2(x)), (h, w))
         x = self.conv3(torch.cat([x1, x2], dim=1))
         return x
+
+
+class SE(nn.Module):
+    def __init__(self, channel, reduction=16):
+        super(SE, self).__init__()
+        self.avg_pool = nn.AdaptiveAvgPool2d(1)
+
+        self.fc = nn.Sequential(
+            nn.Linear(channel, channel // reduction, bias=False),
+            nn.ReLU(inplace=True),
+            nn.Linear(channel // reduction, channel, bias=False),
+            nn.Sigmoid(),
+        )
+
+    def forward(self, x):
+        b, c, _, _ = x.size()
+        y = self.avg_pool(x).view(b, c)
+        y = self.fc(y).view(b, c, 1, 1)
+        return x * y.expand_as(x)
 
 
 class GAPModule(nn.Module):
@@ -442,6 +461,7 @@ class NoiseOp2(nn.Module):
         noise = Variable(x_new.data.new(x_new.size()).normal_(self.mean, self.std))
         return noise
 
+
 class CosineDecayScheduler(object):
     def __init__(self, base_lr=1.0, last_iter=0, T_max=50):
         self.base_lr = base_lr
@@ -451,46 +471,65 @@ class CosineDecayScheduler(object):
 
     def decay_rate(self, step):
         self.last_iter = step
-        decay_rate = self.base_lr * (1 + math.cos(math.pi * self.last_iter / self.T_max)) / 2.0 if self.last_iter <= self.T_max else 0
+        decay_rate = (
+            self.base_lr * (1 + math.cos(math.pi * self.last_iter / self.T_max)) / 2.0
+            if self.last_iter <= self.T_max
+            else 0
+        )
         return decay_rate
 
-# from noisy darts 
+
+# from noisy darts
 class NoiseOp(nn.Module):
-    def __init__(self, noise_type='gaussian', factor=1., mean=0.0, noise_mixture="additive", decay_scheduler=None, add_noise=True):
+    def __init__(
+        self,
+        mean=0.0,
+        factor=1.0,
+        noise_type="gaussian",
+        noise_mixture="additive",
+        decay_scheduler=None,
+        add_noise=True,
+    ):
         super(NoiseOp, self).__init__()
         self.noise_type = noise_type
-        self.factor = factor # factor for std
+        self.factor = factor  # factor for std
         self.mean = mean
         self.noise_mixture = noise_mixture
         self.add_noise = add_noise
         if decay_scheduler is None:
             self.decay_scheduler = CosineDecayScheduler()
         else:
-            self.decay_scheduler = None 
+            self.decay_scheduler = None
 
     def forward(self, x):
         if self.training and self.add_noise:
-            if self.noise_type == 'uniform':
+            if self.noise_type == "uniform":
                 # uniform variance is (b-a)^2/12, so a = sqrt(3*factor)
                 # uniform takes between (-1,1) * a
-                a = np.sqrt(3*self.factor)
+                a = np.sqrt(3 * self.factor)
                 noise = self.mean + (-2 * torch.rand_like(x) + 1) * a
-            elif self.noise_type == 'gaussian':
+            elif self.noise_type == "gaussian":
                 # normal distribution
-                std = x.std() * self.factor if self.noise_mixture == 'additive' else self.factor
-                means = self.mean + torch.zeros_like(x, device=torch.device("cuda"), requires_grad=False)
+                std = (
+                    x.std() * self.factor
+                    if self.noise_mixture == "additive"
+                    else self.factor
+                )
+                means = self.mean + torch.zeros_like(
+                    x, device=torch.device("cuda"), requires_grad=False
+                )
                 noise = torch.normal(means, std, out=None).cuda()
             else:
-                assert False, 'Not supported noise type'
+                assert False, "Not supported noise type"
 
             decay_rate = 1
-            
-            if self.noise_mixture == 'additive':
+
+            if self.noise_mixture == "additive":
                 x = x + noise * decay_rate
                 # x = noise
-            elif self.noise_mixture == 'multiplicative':
+            elif self.noise_mixture == "multiplicative":
                 x = x * noise * decay_rate
             else:
-                assert False, 'Not supported noise mixture'
+                assert False, "Not supported noise mixture"
 
         return x

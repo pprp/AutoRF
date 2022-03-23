@@ -1,20 +1,15 @@
-from search.utils import DropPath
-from utils.utils import drop_path
-from torchvision.models import ResNet
-from torch.utils.model_zoo import load_url as load_state_dict_from_url
-from torch.autograd import Variable
-from space.spaces import OPS
-from space.operations import *
-import torch.nn as nn
-import torch
 import os
-import pdb
 import sys
-from collections import namedtuple
 import warnings
+from collections import namedtuple
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import torch
+import torch.nn as nn
+from search.utils import DropPath
+from space.operations import *
+from space.spaces import OPS
 
 Genotype = namedtuple("Genotype", "normal normal_concat")
 
@@ -158,7 +153,7 @@ class ReceptiveFieldAttention(nn.Module):
             conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
 
     '''
-    def __init__(self, C, steps=3, reduction=False, se=True, genotype=None):
+    def __init__(self, C, steps=3, se=True, genotype=None):
         super(ReceptiveFieldAttention, self).__init__()
         assert genotype is not None
         self._ops = nn.ModuleList()
@@ -516,45 +511,6 @@ class CifarRFGELUBNBasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
-
-class PluginBasicBlock(nn.Module):
-    def __init__(self, inplanes, planes, stride, step, genotype=None, att_type='SE'):
-        super(PluginBasicBlock, self).__init__()
-        self._steps = step
-        self.conv1 = conv3x3(inplanes, planes, stride)
-        self.bn1 = nn.BatchNorm2d(planes)
-        self.relu = nn.ReLU()
-        self.conv2 = conv3x3(planes, planes)
-        self.bn2 = nn.BatchNorm2d(planes)
-        self.genotype = genotype
-
-        if inplanes != planes:
-            self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
-                nn.BatchNorm2d(planes),
-            )
-        else:
-            self.downsample = lambda x: x
-        self.stride = stride
-
-        assert att_type is not None 
-
-        self.attention = eval(att_type)(planes, genotype=self.genotype)
-
-    def forward(self, x):
-        residual = self.downsample(x)
-        out = self.conv1(x)
-        out = self.bn1(out)
-        out = self.relu(out)
-        out = self.conv2(out)
-        out = self.bn2(out)
-        out = self.attention(out)
-        out = out + residual
-        out = self.relu(out)
-
-        return out
-
 
 class CifarRFBNGELUBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype=None):
