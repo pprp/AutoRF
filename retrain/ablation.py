@@ -202,7 +202,6 @@ def plug_resnet20(**kwargs):
     model = PluginResNet(PluginBasicBlock, 3, **kwargs)
     return model
 
-
 def plug_spatial_resnet20(channel=False, spatial=True, **kwargs):
     return plug_resnet20(channel=channel, spatial=spatial, **kwargs)
 

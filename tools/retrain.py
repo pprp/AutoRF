@@ -219,7 +219,6 @@ def main():
             train_acc, train_obj = train_asam(train_queue, model, criterion, optimizer, minimizer)
         else:
             train_acc, train_obj = train(train_queue, model, criterion, optimizer)
-        # train_acc, train_obj = train_ricap(train_queue, model, criterion, optimizer)
 
         # logging.info("train_acc %f", train_acc)
 
