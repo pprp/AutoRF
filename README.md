@@ -51,5 +51,10 @@ python tools/retrain.py --model_base 'rf_resnet20' \
 ## Citation
 
 ```
-Dong, P., Niu, X., Wei, Z., Pan, H., Li, D., Huang, Z. (2023). AutoRF: Auto Learning Receptive Fields with Spatial Pooling. In: , et al. MultiMedia Modeling. MMM 2023. Lecture Notes in Computer Science, vol 13834. Springer, Cham. https://doi.org/10.1007/978-3-031-27818-1_56
+@inproceedings{Dong2023AutoRFAL,
+  title={AutoRF: Auto Learning Receptive Fields with Spatial Pooling},
+  author={Peijie Dong and Xin Niu and Zimian Wei and Hengyue Pan and Dongsheng Li and Zhen Huang},
+  booktitle={Conference on Multimedia Modeling},
+  year={2023}
+}
 ```
