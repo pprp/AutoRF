@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 module load anaconda/2021.05
 module load  cuda/11.1
@@ -8,9 +8,9 @@ source activate hb
 export PYTHONUNBUFFERED=1
 
 
-# python tools/search.py --model_name rf_p1 
-# python tools/search.py --model_name rf_p2 
-# python tools/search.py --model_name rf_p3 
+# python tools/search.py --model_name rf_p1
+# python tools/search.py --model_name rf_p2
+# python tools/search.py --model_name rf_p3
 # python tools/search.py --model_name rf_p4
 # python tools/search.py --model_name rf_p5
 # python tools/search.py --model_name rf_p6
@@ -25,20 +25,20 @@ export PYTHONUNBUFFERED=1
 # p6 = C//4 + SE=True + SPP1(FULLPool) + Self-Attention
 
 
-# cifar100 
-# python tools/search.py --dataset 'cifar100' --model_name "cifar100_rf" --cutout --cutout_length 8 
+# cifar100
+# python tools/search.py --dataset 'cifar100' --model_name "cifar100_rf" --cutout --cutout_length 8
 
 # imagenet-mini mobilenetv2 rf
 # python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini' --model_name "mobilenetv2_imagenet_mini" --model_name 'mobilenet_rf_v2'
 
-# date 
+# date
 # # cp -r /data/public/imagenet-mini /dev/shm
 # unzip -o /HOME/scz0088/run/datasets/imagenet-mini.zip -d /dev/shm/imagenet-mini > /dev/null
-# date 
+# date
 
 
-# # imagenet-mini mobilentv2 rfsa 
-# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'mobilenet_rfsa_v2' --batch_size 64 
+# # imagenet-mini mobilentv2 rfsa
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini' --model_name 'mobilenet_rfsa_v2' --batch_size 64
 
 ########## ablation study ###########
 # 注意：修改spaces中的PRITMITIVE, 然后运行试验
@@ -55,24 +55,23 @@ export PYTHONUNBUFFERED=1
 
 
 ############# search in imagenet-mini resnet34, resnet18 rf ###########
-# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini"
 
-# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini" 
+# python tools/search.py --dataset 'imagenet' --data '/dev/shm/imagenet-mini/train' --model_name 'resnet34_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.0125 --comments "imagenet-mini"
 
 # 测试不同的数据集，看看是否是由于imagenet-mini过于简单导致的
-# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet34_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet34_rf" --arch_learning_rate 1e-4 
+# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet34_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet34_rf" --arch_learning_rate 1e-4
 
-# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet18_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet18_rf" --arch_learning_rate 1e-4 
+# python tools/search.py --dataset 'cifar10' --data '/data/public/cifar' --model_name 'resnet18_rf' --batch_size 256  --primitives "fullpool" --learning_rate 0.05 --comments "cifar10_test_resnet18_rf" --arch_learning_rate 1e-4
 
-# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate 
-# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf" --arch_learning_rate 5e-5 
+# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf" --arch_learning_rate 5e-5
 
-# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate 
-# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 64  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_biglr" --arch_learning_rate 5e-5 
+# 依然采用imagenet mini数据集，通过使用noise的方式，防止collapse of darts, 增大noise, 降低arch learning rate
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 64  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_biglr" --arch_learning_rate 5e-5
 
 # fix bugs in noise std=0.2 collapse at 1 epoch
-# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5
 
-# update std from 0.2 to 1 
-# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5 
-
+# update std from 0.2 to 1
+# python tools/search.py --dataset 'imagenet' --data '/data/public/imagenet-mini/train' --model_name 'resnet18_rf' --batch_size 32  --primitives "fullpool" --learning_rate 0.025 --comments "imagenet-mini-resnet18_rf_new_noiseop" --arch_learning_rate 5e-5

@@ -1,7 +1,7 @@
 tensorboardX
 torch
-torchvision 
+torchvision
 graphviz
-numpy 
-thop 
-timm 
+numpy
+thop
+timm

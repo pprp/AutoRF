@@ -1,5 +1,5 @@
-import torch
 import numpy as np
+import torch
 import torch.nn as nn
 from torch.autograd import Variable
 
@@ -25,19 +25,16 @@ class Architect(object):
         loss = self.model._loss(input, target)
         theta = _concat(self.model.parameters()).data
         try:
-            moment = _concat(
-                network_optimizer.state[v]["momentum_buffer"]
-                for v in self.model.parameters()
-            ).mul_(self.network_momentum)
+            moment = _concat(network_optimizer.state[v]['momentum_buffer']
+                             for v in self.model.parameters()).mul_(
+                                 self.network_momentum)
         except:
             moment = torch.zeros_like(theta)
         dtheta = (
-            _concat(torch.autograd.grad(loss, self.model.parameters())).data
-            + self.network_weight_decay * theta
-        )
+            _concat(torch.autograd.grad(loss, self.model.parameters())).data +
+            self.network_weight_decay * theta)
         unrolled_model = self._construct_model_from_theta(
-            theta.sub(eta, moment + dtheta)
-        )
+            theta.sub(eta, moment + dtheta))
         return unrolled_model
 
     def step(
@@ -65,7 +62,8 @@ class Architect(object):
         self.optimizer.step()
 
     def _backward_step(self, input_valid, target_valid):
-        loss = self.model._loss(input_valid, target_valid)  # model loss of validation
+        loss = self.model._loss(input_valid,
+                                target_valid)  # model loss of validation
         loss.backward()
 
     def _backward_step_unrolled(
@@ -77,18 +75,19 @@ class Architect(object):
         eta,
         network_optimizer,
     ):
-        unrolled_model = self._compute_unrolled_model(
-            input_train, target_train, eta, network_optimizer
-        )
+        unrolled_model = self._compute_unrolled_model(input_train,
+                                                      target_train, eta,
+                                                      network_optimizer)
         unrolled_loss = unrolled_model._loss(input_valid, target_valid)
 
         unrolled_loss.backward()
         dalpha = [v.grad for v in unrolled_model.arch_parameters()]
         vector = [v.grad.data for v in unrolled_model.parameters()]
-        implicit_grads = self._hessian_vector_product(vector, input_train, target_train)
+        implicit_grads = self._hessian_vector_product(vector, input_train,
+                                                      target_train)
 
         for g, ig in zip(dalpha, implicit_grads):
-            g.data.inplace = False(eta, ig.data)
+            g.data.inplace = False (eta, ig.data)
 
         for v, g in zip(self.model.arch_parameters(), dalpha):
             if v.grad is None:
@@ -104,19 +103,17 @@ class Architect(object):
         for k, v in self.model.named_parameters():
             """k is the name of the param: key , v is the param model.named_parameters() return (name, param)"""
 
-            v_length = np.prod(v.size())  # v_length  is the length of the parameter
-            params[k] = theta[offset : offset + v_length].view(
-                v.size()
-            )  #  assign the value of theta to the new model
+            v_length = np.prod(
+                v.size())  # v_length  is the length of the parameter
+            params[k] = theta[offset:offset + v_length].view(
+                v.size())  #  assign the value of theta to the new model
             offset += v_length
 
         assert offset == len(
-            theta
-        )  # make sure that go throuth all the parameters in theta
+            theta)  # make sure that go throuth all the parameters in theta
         model_dict.update(params)  # update the model dict
         model_new.load_state_dict(
-            model_dict
-        )  # reconstruct the model with the updated dict
+            model_dict)  # reconstruct the model with the updated dict
         return model_new.cuda()
 
     def _hessian_vector_product(self, vector, input, target, r=1e-2):

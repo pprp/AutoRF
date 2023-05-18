@@ -1,4 +1,4 @@
-#!/bin/bash 
+#!/bin/bash
 
 module load anaconda/2021.05
 module load  cuda/11.1

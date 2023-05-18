@@ -5,145 +5,177 @@ import os
 import sys
 import time
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import numpy as np
-import space.genotypes as genotypes
 import torch
 import torch.backends.cudnn as cudnn
 import torch.nn as nn
 import torch.utils
 import torchvision.datasets as dset
-import utils.utils as utils
 from tensorboardX import SummaryWriter
 from thop import profile
 from torch.autograd import Variable
 from torch.cuda.amp import autocast
+
+import space.genotypes as genotypes
+import utils.utils as utils
+from retrain.studentnet import Network
+from utils.asam import ASAM, SAM
 from utils.labelsmooth import LSR
 from utils.warmup import WarmUpLR
-from utils.asam import ASAM, SAM
 
-from retrain.studentnet import Network
-
-parser = argparse.ArgumentParser("cifar")
+parser = argparse.ArgumentParser('cifar')
 
 ############## data
 
-parser.add_argument(
-    "--data", type=str, default="/data/public/cifar", help="location of the data corpus"
-)
-parser.add_argument(
-    "--dataset", type=str, default="cifar10", help="cifar10 or cifar100"
-)
+parser.add_argument('--data',
+                    type=str,
+                    default='/data/public/cifar',
+                    help='location of the data corpus')
+parser.add_argument('--dataset',
+                    type=str,
+                    default='cifar10',
+                    help='cifar10 or cifar100')
 
-parser.add_argument("--cutout", action="store_true", default=False, help="use cutout")
+parser.add_argument('--cutout',
+                    action='store_true',
+                    default=False,
+                    help='use cutout')
 
-parser.add_argument("--cutout_length", type=int, default=8, help="cutout length")
+parser.add_argument('--cutout_length',
+                    type=int,
+                    default=8,
+                    help='cutout length')
 
 parser.add_argument(
-    "--primitives",
+    '--primitives',
     type=str,
-    default="fullpool",
-    help="choose in autola, fullpool, fullconv, hybrid",
+    default='fullpool',
+    help='choose in autola, fullpool, fullconv, hybrid',
 )
 
 ############# params
-parser.add_argument("--model_name", type=str, default="resnet20", help="name")
+parser.add_argument('--model_name', type=str, default='resnet20', help='name')
+
+parser.add_argument('--model_base',
+                    type=str,
+                    default='resnet20',
+                    help='name of base models')
+parser.add_argument('--learning_rate',
+                    type=float,
+                    default=0.1,
+                    help='learning rate')
+parser.add_argument('--learning_rate_min',
+                    type=float,
+                    default=0.001,
+                    help='min learning rate')
+parser.add_argument('--momentum', type=float, default=0.9, help='momentum')
+parser.add_argument('--weight_decay',
+                    type=float,
+                    default=5e-4,
+                    help='weight decay 1e-3')
+parser.add_argument('--batch_size', type=int, default=256, help='batch size')
+parser.add_argument('--epochs',
+                    type=int,
+                    default=500,
+                    help='num of training epochs')
+parser.add_argument('--report_freq',
+                    type=float,
+                    default=400,
+                    help='report frequency')
+parser.add_argument('--grad_clip',
+                    type=float,
+                    default=5,
+                    help='gradient clipping')
+parser.add_argument('--save', type=str, default='test', help='experiment name')
+parser.add_argument('--gpu', type=int, default=0, help='gpu device id')
 
 parser.add_argument(
-    "--model_base", type=str, default="resnet20", help="name of base models"
-)
-parser.add_argument("--learning_rate", type=float, default=0.1, help="learning rate")
-parser.add_argument(
-    "--learning_rate_min", type=float, default=0.001, help="min learning rate"
-)
-parser.add_argument("--momentum", type=float, default=0.9, help="momentum")
-parser.add_argument(
-    "--weight_decay", type=float, default=5e-4, help="weight decay 1e-3"
-)
-parser.add_argument("--batch_size", type=int, default=256, help="batch size")
-parser.add_argument("--epochs", type=int, default=500, help="num of training epochs")
-parser.add_argument("--report_freq", type=float, default=400, help="report frequency")
-parser.add_argument("--grad_clip", type=float, default=5, help="gradient clipping")
-parser.add_argument("--save", type=str, default="test", help="experiment name")
-parser.add_argument("--gpu", type=int, default=0, help="gpu device id")
-
-parser.add_argument(
-    "--model_path",
+    '--model_path',
     type=str,
-    default="exps/search-exp-20191220-160515/weights.pt",
-    help="path of pretrained model",
+    default='exps/search-exp-20191220-160515/weights.pt',
+    help='path of pretrained model',
 )
-parser.add_argument(
-    "--auxiliary", action="store_true", default=False, help="use auxiliary tower"
-)
+parser.add_argument('--auxiliary',
+                    action='store_true',
+                    default=False,
+                    help='use auxiliary tower')
 
-################## settings 
+################## settings
 
-parser.add_argument(
-    "--label_smooth", action="store_true", default=False, help="wether use label smooth"
-)
-
-parser.add_argument(
-    "--no_bias_decay", action="store_true", default=False, help="Highly Scalable Deep Learning Training System with Mixed-Precision: Training ImageNet in Four Minutes"
-)
+parser.add_argument('--label_smooth',
+                    action='store_true',
+                    default=False,
+                    help='wether use label smooth')
 
 parser.add_argument(
-    "--scheduler", type=str, default="cosine", help="scheduler choose from cosine, steplr, warmup"
+    '--no_bias_decay',
+    action='store_true',
+    default=False,
+    help=
+    'Highly Scalable Deep Learning Training System with Mixed-Precision: Training ImageNet in Four Minutes'
 )
 
-parser.add_argument(
-    "--minimizer", default=None, type=str, help="None or ASAM, SAM"
-)
-parser.add_argument("--rho", default=0.5, type=float, help="Rho for ASAM.")
-parser.add_argument("--eta", default=0.0, type=float, help="Eta for ASAM.")
+parser.add_argument('--scheduler',
+                    type=str,
+                    default='cosine',
+                    help='scheduler choose from cosine, steplr, warmup')
 
-parser.add_argument(
-    "--warm", type=int, default=5, help="warmup epoch numbers"
-)
+parser.add_argument('--minimizer',
+                    default=None,
+                    type=str,
+                    help='None or ASAM, SAM')
+parser.add_argument('--rho', default=0.5, type=float, help='Rho for ASAM.')
+parser.add_argument('--eta', default=0.0, type=float, help='Eta for ASAM.')
 
-parser.add_argument(
-    "--drop_path_prob", type=float, default=0.2, help="drop path probability"
-)
+parser.add_argument('--warm', type=int, default=5, help='warmup epoch numbers')
 
-parser.add_argument("--dropout", type=float, default=0.0, help="drop path probability")
-parser.add_argument("--seed", type=int, default=0, help="random seed")
+parser.add_argument('--drop_path_prob',
+                    type=float,
+                    default=0.2,
+                    help='drop path probability')
 
-parser.add_argument(
-    "--arch", type=str, default="Attention", help="which architecture to use"
-)
+parser.add_argument('--dropout',
+                    type=float,
+                    default=0.0,
+                    help='drop path probability')
+parser.add_argument('--seed', type=int, default=0, help='random seed')
+
+parser.add_argument('--arch',
+                    type=str,
+                    default='Attention',
+                    help='which architecture to use')
 
 ############## end
 
 args = parser.parse_args()
-args.save = "{}-{}-{}".format(
-    args.model_name, args.save, time.strftime("%Y%m%d-%H%M%S")
-)
-utils.create_exp_dir(
-    os.path.join("exps/retrain", args.save), scripts_to_save=glob.glob("*/*.py")
-)
+args.save = '{}-{}-{}'.format(args.model_name, args.save,
+                              time.strftime('%Y%m%d-%H%M%S'))
+utils.create_exp_dir(os.path.join('exps/retrain', args.save),
+                     scripts_to_save=glob.glob('*/*.py'))
 
-log_format = "%(asctime)s %(message)s"
+log_format = '%(asctime)s %(message)s'
 logging.basicConfig(
     stream=sys.stdout,
     level=logging.INFO,
     format=log_format,
-    datefmt="%m/%d %I:%M:%S %p",
+    datefmt='%m/%d %I:%M:%S %p',
 )
 fh = logging.FileHandler(
-    os.path.join(os.path.join("exps/retrain", args.save), "log.txt")
-)
+    os.path.join(os.path.join('exps/retrain', args.save), 'log.txt'))
 fh.setFormatter(logging.Formatter(log_format))
 logging.getLogger().addHandler(fh)
 
-if args.dataset == "cifar10":
+if args.dataset == 'cifar10':
     CIFAR_CLASSES = 10
-elif args.dataset == "cifar100":
+elif args.dataset == 'cifar100':
     CIFAR_CLASSES = 100
+
 
 def main():
     if not torch.cuda.is_available():
-        logging.info("no gpu device available")
+        logging.info('no gpu device available')
         sys.exit(1)
 
     np.random.seed(args.seed)
@@ -152,13 +184,16 @@ def main():
     torch.manual_seed(args.seed)
     cudnn.enabled = True
     torch.cuda.manual_seed(args.seed)
-    logging.info("gpu device = %d" % args.gpu)
-    logging.info("args = %s", args)
+    logging.info('gpu device = %d' % args.gpu)
+    logging.info('args = %s', args)
 
-    genotype = eval("genotypes.%s" % args.arch)
-    logging.info("genotype = %s", genotype)
+    genotype = eval('genotypes.%s' % args.arch)
+    logging.info('genotype = %s', genotype)
 
-    model = Network(args.model_base, CIFAR_CLASSES, genotype, dropout=args.dropout)
+    model = Network(args.model_base,
+                    CIFAR_CLASSES,
+                    genotype,
+                    dropout=args.dropout)
 
     # flops, params = profile(model, inputs=(torch.randn(1, 3, 32, 32),))
     model = model.cuda()
@@ -167,7 +202,7 @@ def main():
     # logging.info(info)
 
     test_epoch = 1
-    logging.info("param size = %fMB", utils.count_parameters_in_MB(model))
+    logging.info('param size = %fMB', utils.count_parameters_in_MB(model))
 
     if args.label_smooth:
         criterion = LSR(e=0.2)
@@ -176,77 +211,90 @@ def main():
     criterion = criterion.cuda()
 
     train_transform, test_transform = utils._data_transforms_cifar(args)
-    train_queue, test_queue = utils._data_loader_cifar(
-        args, train_transform, test_transform
-    )
+    train_queue, test_queue = utils._data_loader_cifar(args, train_transform,
+                                                       test_transform)
 
     if args.no_bias_decay:
         params = utils.split_weights(model)
     else:
         params = model.parameters()
-    
-    optimizer = torch.optim.SGD(
-            params,
-            args.learning_rate,
-            momentum=args.momentum,
-            weight_decay=args.weight_decay,
-            # nesterov=True
-        )
-    
-    if args.minimizer:
-        minimizer = eval(args.minimizer)(optimizer, model, rho=args.rho, eta=args.eta)
 
-    if args.scheduler == "cosine":
-        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
-        minimizer.optimizer if args.minimizer else optimizer, float(args.epochs), eta_min=args.learning_rate_min,
+    optimizer = torch.optim.SGD(
+        params,
+        args.learning_rate,
+        momentum=args.momentum,
+        weight_decay=args.weight_decay,
+        # nesterov=True
     )
-    elif args.scheduler == "steplr":
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(minimizer.optimizer if args.minimizer else optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
-    elif args.scheduler == "warmup":
-        warmup_scheduler = WarmUpLR(minimizer.optimizer if args.minimizer else optimizer, args.warm * len(train_queue))
-        scheduler = torch.optim.lr_scheduler.MultiStepLR(minimizer.optimizer if args.minimizer else optimizer, milestones=[60, 120, 160], gamma=0.2) #learning rate decay
+
+    if args.minimizer:
+        minimizer = eval(args.minimizer)(optimizer,
+                                         model,
+                                         rho=args.rho,
+                                         eta=args.eta)
+
+    if args.scheduler == 'cosine':
+        scheduler = torch.optim.lr_scheduler.CosineAnnealingLR(
+            minimizer.optimizer if args.minimizer else optimizer,
+            float(args.epochs),
+            eta_min=args.learning_rate_min,
+        )
+    elif args.scheduler == 'steplr':
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            minimizer.optimizer if args.minimizer else optimizer,
+            milestones=[60, 120, 160],
+            gamma=0.2)  #learning rate decay
+    elif args.scheduler == 'warmup':
+        warmup_scheduler = WarmUpLR(
+            minimizer.optimizer if args.minimizer else optimizer,
+            args.warm * len(train_queue))
+        scheduler = torch.optim.lr_scheduler.MultiStepLR(
+            minimizer.optimizer if args.minimizer else optimizer,
+            milestones=[60, 120, 160],
+            gamma=0.2)  #learning rate decay
 
     best_acc = 0.0
-    writer = SummaryWriter(os.path.join("exps/retrain", args.save))
+    writer = SummaryWriter(os.path.join('exps/retrain', args.save))
 
     for epoch in range(args.epochs):
-        if epoch <= args.warm and args.scheduler == "warmup":
-            warmup_scheduler.step() 
+        if epoch <= args.warm and args.scheduler == 'warmup':
+            warmup_scheduler.step()
 
         model.drop_path_prob = args.drop_path_prob * epoch / args.epochs
 
         if args.minimizer:
-            train_acc, train_obj = train_asam(train_queue, model, criterion, optimizer, minimizer)
+            train_acc, train_obj = train_asam(train_queue, model, criterion,
+                                              optimizer, minimizer)
         else:
-            train_acc, train_obj = train(train_queue, model, criterion, optimizer)
+            train_acc, train_obj = train(train_queue, model, criterion,
+                                         optimizer)
 
         # logging.info("train_acc %f", train_acc)
 
         valid_acc, valid_obj = infer(test_queue, model, criterion)
-        writer.add_scalar("train_loss", train_obj, epoch)
-        writer.add_scalar("train_acc", train_acc, epoch)
-        writer.add_scalar("val_loss", valid_obj, epoch)
-        writer.add_scalar("val_acc", valid_acc, epoch)
-        writer.add_scalar("lr", optimizer.param_groups[0]['lr'], epoch)
+        writer.add_scalar('train_loss', train_obj, epoch)
+        writer.add_scalar('train_acc', train_acc, epoch)
+        writer.add_scalar('val_loss', valid_obj, epoch)
+        writer.add_scalar('val_acc', valid_acc, epoch)
+        writer.add_scalar('lr', optimizer.param_groups[0]['lr'], epoch)
 
         if valid_acc > best_acc:
             best_acc = valid_acc
             logging.info(
-                "valid epoch %d, valid_acc %.2f, best_acc %.2f",
+                'valid epoch %d, valid_acc %.2f, best_acc %.2f',
                 epoch,
                 valid_acc,
                 best_acc,
             )
             utils.save(
                 model,
-                os.path.join(
-                    os.path.join("exps/retrain", args.save), "weights_retrain.pt"
-                ),
+                os.path.join(os.path.join('exps/retrain', args.save),
+                             'weights_retrain.pt'),
             )
-        if args.scheduler == "warmup" and epoch > args.warm:
+        if args.scheduler == 'warmup' and epoch > args.warm:
             scheduler.step()
-        elif not args.scheduler == "warmup":
-            scheduler.step() 
+        elif not args.scheduler == 'warmup':
+            scheduler.step()
 
 
 def train_ricap(train_queue, model, criterion, optimizer):
@@ -275,7 +323,8 @@ def train_ricap(train_queue, model, criterion, optimizer):
             idx = torch.randperm(input.size(0))
             x_k = np.random.randint(0, I_x - w_[k] + 1)
             y_k = np.random.randint(0, I_y - h_[k] + 1)
-            cropped_images[k] = input[idx][:, :, x_k : x_k + w_[k], y_k : y_k + h_[k]]
+            cropped_images[k] = input[idx][:, :, x_k:x_k + w_[k],
+                                           y_k:y_k + h_[k]]
             c_[k] = target[idx].cuda()
             W_[k] = w_[k] * h_[k] / (I_x * I_y)
 
@@ -291,7 +340,8 @@ def train_ricap(train_queue, model, criterion, optimizer):
         if True:  # amp=True
             with autocast():
                 output = model(patched_images)
-                loss = sum([W_[k] * criterion(output, c_[k]) for k in range(4)])
+                loss = sum(
+                    [W_[k] * criterion(output, c_[k]) for k in range(4)])
         else:
             output = model(patched_images)
             loss = sum([W_[k] * criterion(output, c_[k]) for k in range(4)])
@@ -312,9 +362,8 @@ def train_ricap(train_queue, model, criterion, optimizer):
         top5.update(prec5.item(), n)
 
         if step % args.report_freq == 0:
-            logging.info(
-                "train %03d %.3f %.2f %.2f", step, objs.avg, top1.avg, top5.avg
-            )
+            logging.info('train %03d %.3f %.2f %.2f', step, objs.avg, top1.avg,
+                         top5.avg)
 
     return top1.avg, objs.avg
 
@@ -349,6 +398,7 @@ def train(train_queue, model, criterion, optimizer):
 
     return top1.avg, objs.avg
 
+
 def train_asam(train_queue, model, criterion, optimizer, minimizer):
     objs = utils.AvgrageMeter()
     top1 = utils.AvgrageMeter()
@@ -367,10 +417,10 @@ def train_asam(train_queue, model, criterion, optimizer, minimizer):
         loss.mean().backward()
         nn.utils.clip_grad_norm_(model.parameters(), args.grad_clip)
         # optimizer.step()
-        minimizer.ascent_step() 
+        minimizer.ascent_step()
 
-        criterion(model(input), target).mean().backward() 
-        minimizer.descent_step() 
+        criterion(model(input), target).mean().backward()
+        minimizer.descent_step()
 
         prec1, prec5 = utils.accuracy(logits, target, topk=(1, 5))
         objs.update(loss.item(), n)
@@ -382,6 +432,7 @@ def train_asam(train_queue, model, criterion, optimizer, minimizer):
         #                  objs.avg, top1.avg, top5.avg)
 
     return top1.avg, objs.avg
+
 
 def infer(test_queue, model, criterion):
     objs = utils.AvgrageMeter()
@@ -405,7 +456,5 @@ def infer(test_queue, model, criterion):
     return top1.avg, objs.avg
 
 
-
-
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()

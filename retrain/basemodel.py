@@ -3,15 +3,16 @@ import sys
 import warnings
 from collections import namedtuple
 
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 import torch
 import torch.nn as nn
+
 from search.utils import DropPath
 from space.operations import *
 from space.spaces import OPS
 
-Genotype = namedtuple("Genotype", "normal normal_concat")
+Genotype = namedtuple('Genotype', 'normal normal_concat')
 
 
 class SE(nn.Module):
@@ -45,8 +46,13 @@ class Conv(nn.Module):
     # ch_in, ch_out, kernel, stride, padding, groups
     def __init__(self, c1, c2, k=1, s=1, p=None, g=1, act=True):
         super().__init__()
-        self.conv = nn.Conv2d(c1, c2, k, s, autopad(k, p),
-                              groups=g, bias=False)
+        self.conv = nn.Conv2d(c1,
+                              c2,
+                              k,
+                              s,
+                              autopad(k, p),
+                              groups=g,
+                              bias=False)
         self.bn = nn.BatchNorm2d(c2)
         self.act = nn.SiLU() if act is True else (
             act if isinstance(act, nn.Module) else nn.Identity())
@@ -77,7 +83,12 @@ class SPP(nn.Module):
 
 
 class CMlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GELU, drop=0.):
+    def __init__(self,
+                 in_features,
+                 hidden_features=None,
+                 out_features=None,
+                 act_layer=nn.GELU,
+                 drop=0.):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -94,8 +105,14 @@ class CMlp(nn.Module):
         x = self.drop(x)
         return x
 
+
 class GMlp(nn.Module):
-    def __init__(self, in_features, hidden_features=None, out_features=None, act_layer=nn.GLU, drop=0.):
+    def __init__(self,
+                 in_features,
+                 hidden_features=None,
+                 out_features=None,
+                 act_layer=nn.GLU,
+                 drop=0.):
         super().__init__()
         out_features = out_features or in_features
         hidden_features = hidden_features or in_features
@@ -115,9 +132,11 @@ class GMlp(nn.Module):
 
 def conv1x1(in_channels, out_channels, stride=1):
     """1x1 convolution"""
-    return nn.Conv2d(
-        in_channels, out_channels, kernel_size=1, stride=stride, bias=False
-    )
+    return nn.Conv2d(in_channels,
+                     out_channels,
+                     kernel_size=1,
+                     stride=stride,
+                     bias=False)
 
 
 def conv3x3(in_channels, out_channels, stride=1, padding=1, dilation=1):
@@ -145,12 +164,13 @@ def conv7x7(in_channels, out_channels, stride=1, padding=3, dilation=1):
         bias=False,
     )
 
+
 class ReceptiveFieldAttention(nn.Module):
     '''
-        receptive field attention module 
+        receptive field attention module
         choose:
-            se: True or False 
-            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+            se: True or False
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module
 
     '''
     def __init__(self, C, steps=3, se=True, genotype=None):
@@ -168,18 +188,30 @@ class ReceptiveFieldAttention(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
-        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
-                                stride=1, padding=0, bias=False)
+        self.bottle = nn.Conv2d(C,
+                                C // 4,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0,
+                                bias=False)
 
-        self.conv1x1 = nn.Conv2d(
-            C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps,
+                                 C,
+                                 kernel_size=1,
+                                 stride=1,
+                                 padding=0,
+                                 bias=False)
 
         if self._se:
             self.se = SE(self.C_in, reduction=4)
 
         if self.conv3x3:
-            self.conv3x3 = nn.Conv2d(
-                C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps,
+                                     C,
+                                     kernel_size=3,
+                                     stride=1,
+                                     padding=1,
+                                     bias=False)
 
         self._compile(C, op_names, indices, concat)
 
@@ -201,7 +233,7 @@ class ReceptiveFieldAttention(nn.Module):
         states = [t]
         offset = 0
 
-        total_step = (1+self._steps) * self._steps // 2
+        total_step = (1 + self._steps) * self._steps // 2
 
         for i in range(total_step):
             h = states[self.indices[i]]
@@ -225,12 +257,13 @@ class ReceptiveFieldAttention(nn.Module):
 
         return node_out
 
+
 class ReceptiveFieldAttentionBNGELU(nn.Module):
     '''
-        receptive field attention module 
+        receptive field attention module
         choose:
-            se: True or False 
-            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+            se: True or False
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module
     '''
     def __init__(self, C, steps=3, reduction=False, se=True, genotype=None):
         super(ReceptiveFieldAttentionBNGELU, self).__init__()
@@ -246,15 +279,23 @@ class ReceptiveFieldAttentionBNGELU(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
-        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
-                                stride=1, padding=0, bias=False)
+        self.bottle = nn.Conv2d(C,
+                                C // 4,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0,
+                                bias=False)
 
-        self.norm = nn.BatchNorm2d(C//4)
+        self.norm = nn.BatchNorm2d(C // 4)
 
-        self.act = nn.GELU() 
+        self.act = nn.GELU()
 
-        self.conv1x1 = nn.Conv2d(
-            C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps,
+                                 C,
+                                 kernel_size=1,
+                                 stride=1,
+                                 padding=0,
+                                 bias=False)
 
         if self._se:
             self.se = SE(self.C_in, reduction=4)
@@ -281,7 +322,7 @@ class ReceptiveFieldAttentionBNGELU(nn.Module):
         states = [t]
         offset = 0
 
-        total_step = (1+self._steps) * self._steps // 2
+        total_step = (1 + self._steps) * self._steps // 2
 
         for i in range(total_step):
             h = states[self.indices[i]]
@@ -301,12 +342,13 @@ class ReceptiveFieldAttentionBNGELU(nn.Module):
 
         return node_out
 
+
 class ReceptiveFieldAttentionGELUBN(nn.Module):
     '''
-        receptive field attention module 
+        receptive field attention module
         choose:
-            se: True or False 
-            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+            se: True or False
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module
     '''
     def __init__(self, C, steps=3, reduction=False, se=True, genotype=None):
         super(ReceptiveFieldAttentionGELUBN, self).__init__()
@@ -322,15 +364,23 @@ class ReceptiveFieldAttentionGELUBN(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
-        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
-                                stride=1, padding=0, bias=False)
+        self.bottle = nn.Conv2d(C,
+                                C // 4,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0,
+                                bias=False)
 
         self.norm = nn.BatchNorm2d(C)
 
-        self.act = nn.GELU() 
+        self.act = nn.GELU()
 
-        self.conv1x1 = nn.Conv2d(
-            C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps,
+                                 C,
+                                 kernel_size=1,
+                                 stride=1,
+                                 padding=0,
+                                 bias=False)
 
         if self._se:
             self.se = SE(self.C_in, reduction=4)
@@ -357,7 +407,7 @@ class ReceptiveFieldAttentionGELUBN(nn.Module):
         states = [t]
         offset = 0
 
-        total_step = (1+self._steps) * self._steps // 2
+        total_step = (1 + self._steps) * self._steps // 2
 
         for i in range(total_step):
             h = states[self.indices[i]]
@@ -383,12 +433,18 @@ class ReceptiveFieldSelfAttention(nn.Module):
     '''
         receptive field self attention module (add FFN module)
         choose:
-            se: True or False 
-            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+            se: True or False
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module
 
     '''
-
-    def __init__(self, C, steps=3, reduction=False, se=True, genotype=None, drop_prob=0., mlp_ratio=2.):
+    def __init__(self,
+                 C,
+                 steps=3,
+                 reduction=False,
+                 se=True,
+                 genotype=None,
+                 drop_prob=0.,
+                 mlp_ratio=2.):
         super(ReceptiveFieldSelfAttention, self).__init__()
         assert genotype is not None
         self._ops = nn.ModuleList()
@@ -405,26 +461,40 @@ class ReceptiveFieldSelfAttention(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
-        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
-                                stride=1, padding=0, bias=False)
+        self.bottle = nn.Conv2d(C,
+                                C // 4,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0,
+                                bias=False)
 
-        self.conv1x1 = nn.Conv2d(
-            C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+        self.conv1x1 = nn.Conv2d(C // 4 * self._steps,
+                                 C,
+                                 kernel_size=1,
+                                 stride=1,
+                                 padding=0,
+                                 bias=False)
         self.drop_path = DropPath(
             drop_prob) if drop_prob > 0. else nn.Identity()
         self.norm2 = nn.BatchNorm2d(C)
 
         mlp_hidden_dim = int(C * mlp_ratio)
 
-        self.mlp = CMlp(
-            in_features=C, hidden_features=mlp_hidden_dim, act_layer=nn.GELU, drop=0.)
+        self.mlp = CMlp(in_features=C,
+                        hidden_features=mlp_hidden_dim,
+                        act_layer=nn.GELU,
+                        drop=0.)
 
         if self._se:
             self.se = SE(self.C_in, reduction=4)
 
         if self.conv3x3:
-            self.conv3x3 = nn.Conv2d(
-                C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps,
+                                     C,
+                                     kernel_size=3,
+                                     stride=1,
+                                     padding=1,
+                                     bias=False)
 
         self._compile(C, op_names, indices, concat)
 
@@ -446,7 +516,7 @@ class ReceptiveFieldSelfAttention(nn.Module):
         states = [t]
         offset = 0
 
-        total_step = (1+self._steps) * self._steps // 2
+        total_step = (1 + self._steps) * self._steps // 2
 
         for i in range(total_step):
             h = states[self.indices[i]]
@@ -476,6 +546,7 @@ class ReceptiveFieldSelfAttention(nn.Module):
 
         return node_out
 
+
 class CifarRFGELUBNBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype=None):
         super(CifarRFGELUBNBasicBlock, self).__init__()
@@ -488,16 +559,19 @@ class CifarRFGELUBNBasicBlock(nn.Module):
         self.genotype = genotype
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
             self.downsample = lambda x: x
         self.stride = stride
 
-        self.attention = ReceptiveFieldAttentionGELUBN(
-            planes, genotype=self.genotype)
+        self.attention = ReceptiveFieldAttentionGELUBN(planes,
+                                                       genotype=self.genotype)
 
     def forward(self, x):
         residual = self.downsample(x)
@@ -511,6 +585,7 @@ class CifarRFGELUBNBasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
+
 
 class CifarRFBNGELUBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype=None):
@@ -524,16 +599,19 @@ class CifarRFBNGELUBasicBlock(nn.Module):
         self.genotype = genotype
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
             self.downsample = lambda x: x
         self.stride = stride
 
-        self.attention = ReceptiveFieldAttentionBNGELU(
-            planes, genotype=self.genotype)
+        self.attention = ReceptiveFieldAttentionBNGELU(planes,
+                                                       genotype=self.genotype)
 
     def forward(self, x):
         residual = self.downsample(x)
@@ -547,6 +625,7 @@ class CifarRFBNGELUBasicBlock(nn.Module):
         out = self.relu(out)
 
         return out
+
 
 class CifarRFBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype=None):
@@ -560,16 +639,19 @@ class CifarRFBasicBlock(nn.Module):
         self.genotype = genotype
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
             self.downsample = lambda x: x
         self.stride = stride
 
-        self.attention = ReceptiveFieldAttention(
-            planes, genotype=self.genotype)
+        self.attention = ReceptiveFieldAttention(planes,
+                                                 genotype=self.genotype)
 
     def forward(self, x):
         residual = self.downsample(x)
@@ -584,6 +666,7 @@ class CifarRFBasicBlock(nn.Module):
 
         return out
 
+
 class Attention(nn.Module):
     def __init__(self, step, C, genotype):
         super(Attention, self).__init__()
@@ -596,13 +679,20 @@ class Attention(nn.Module):
         self.se = SE(self.C_in, reduction=2)  # 8
         self.se2 = SE(self.C_in * 4, reduction=2)  # 8
         self.channel_back = nn.Sequential(
-            nn.Conv2d(
-                self.C_in * 5, self._C, kernel_size=1, padding=0, groups=1, bias=False
-            ),
+            nn.Conv2d(self.C_in * 5,
+                      self._C,
+                      kernel_size=1,
+                      padding=0,
+                      groups=1,
+                      bias=False),
             nn.BatchNorm2d(self._C),
             nn.ReLU(inplace=False),
-            nn.Conv2d(self._C, self._C, kernel_size=1,
-                      padding=0, groups=1, bias=False),
+            nn.Conv2d(self._C,
+                      self._C,
+                      kernel_size=1,
+                      padding=0,
+                      groups=1,
+                      bias=False),
             nn.BatchNorm2d(self._C),
         )
         self.genotype = genotype
@@ -682,25 +772,35 @@ class Attention(nn.Module):
         attention_out = self.se2(attention_out)
         return attention_out
 
+
 class BasicBlock(nn.Module):
     expansion = 1
 
     def __init__(self, in_planes, planes, stride=1, step=0, genotype=None):
         super(BasicBlock, self).__init__()
-        self.conv1 = nn.Conv2d(
-            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_planes,
+                               planes,
+                               kernel_size=3,
+                               stride=stride,
+                               padding=1,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
-                               stride=1, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(planes,
+                               planes,
+                               kernel_size=3,
+                               stride=1,
+                               padding=1,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, self.expansion * planes,
-                          kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(self.expansion * planes)
-            )
+                nn.Conv2d(in_planes,
+                          self.expansion * planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False), nn.BatchNorm2d(self.expansion * planes))
 
     def forward(self, x):
         out = F.relu(self.bn1(self.conv1(x)))
@@ -708,6 +808,7 @@ class BasicBlock(nn.Module):
         out += self.shortcut(x)
         out = F.relu(out)
         return out
+
 
 class CifarRFSABasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step=3, genotype=None):
@@ -720,8 +821,11 @@ class CifarRFSABasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
@@ -743,35 +847,53 @@ class CifarRFSABasicBlock(nn.Module):
 
         return out
 
+
 class NormalAttentionBasicBlock(nn.Module):
     '''
-    SE 
-    CBAM 
-    SPP 
+    SE
+    CBAM
+    SPP
     '''
     expansion = 1
 
-    def __init__(self, in_planes, planes, stride=1, step=0, genotype=None, se=False, cbam=False, spp=False):
+    def __init__(self,
+                 in_planes,
+                 planes,
+                 stride=1,
+                 step=0,
+                 genotype=None,
+                 se=False,
+                 cbam=False,
+                 spp=False):
         super(NormalAttentionBasicBlock, self).__init__()
 
         self.se = se
         self.cbam = cbam
         self.spp = spp
 
-        self.conv1 = nn.Conv2d(
-            in_planes, planes, kernel_size=3, stride=stride, padding=1, bias=False)
+        self.conv1 = nn.Conv2d(in_planes,
+                               planes,
+                               kernel_size=3,
+                               stride=stride,
+                               padding=1,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(planes)
-        self.conv2 = nn.Conv2d(planes, planes, kernel_size=3,
-                               stride=1, padding=1, bias=False)
+        self.conv2 = nn.Conv2d(planes,
+                               planes,
+                               kernel_size=3,
+                               stride=1,
+                               padding=1,
+                               bias=False)
         self.bn2 = nn.BatchNorm2d(planes)
 
         self.shortcut = nn.Sequential()
         if stride != 1 or in_planes != planes:
             self.shortcut = nn.Sequential(
-                nn.Conv2d(in_planes, self.expansion * planes,
-                          kernel_size=1, stride=stride, bias=False),
-                nn.BatchNorm2d(self.expansion * planes)
-            )
+                nn.Conv2d(in_planes,
+                          self.expansion * planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False), nn.BatchNorm2d(self.expansion * planes))
 
         if self.se:
             self.se = SE(planes, reduction=16)
@@ -799,6 +921,7 @@ class NormalAttentionBasicBlock(nn.Module):
         out = F.relu(out)
         return out
 
+
 class CifarAttentionBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step, genotype):
         super(CifarAttentionBasicBlock, self).__init__()
@@ -810,8 +933,11 @@ class CifarAttentionBasicBlock(nn.Module):
         self.genotype = genotype
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
@@ -833,16 +959,23 @@ class CifarAttentionBasicBlock(nn.Module):
         out = self.relu(out)
         return out
 
+
 class RFConvNeXtAttention(nn.Module):
     '''
         receptive field self attention module ConvNext Style (add FFN module)
         choose:
-            se: True or False 
-            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module 
+            se: True or False
+            conv3x3: use 3x3 or 1x3 conv to fuse feature after rf module
 
     '''
-
-    def __init__(self, C, steps=3, reduction=False, se=False, genotype=None, drop_prob=0., mlp_ratio=2.):
+    def __init__(self,
+                 C,
+                 steps=3,
+                 reduction=False,
+                 se=False,
+                 genotype=None,
+                 drop_prob=0.,
+                 mlp_ratio=2.):
         super(RFConvNeXtAttention, self).__init__()
         assert genotype is not None
         self._ops = nn.ModuleList()
@@ -860,8 +993,12 @@ class RFConvNeXtAttention(nn.Module):
         op_names, indices = zip(*self.genotype.normal)
         concat = genotype.normal_concat
 
-        self.bottle = nn.Conv2d(C, C//4, kernel_size=1,
-                                stride=1, padding=0, bias=False)
+        self.bottle = nn.Conv2d(C,
+                                C // 4,
+                                kernel_size=1,
+                                stride=1,
+                                padding=0,
+                                bias=False)
 
         self.drop_path = DropPath(
             drop_prob) if drop_prob > 0. else nn.Identity()
@@ -878,11 +1015,19 @@ class RFConvNeXtAttention(nn.Module):
             self.se = SE(self.C_in, reduction=4)
 
         if self.conv3x3:
-            self.conv3x3 = nn.Conv2d(
-                C // 4 * self._steps, C, kernel_size=3, stride=1, padding=1, bias=False)
+            self.conv3x3 = nn.Conv2d(C // 4 * self._steps,
+                                     C,
+                                     kernel_size=3,
+                                     stride=1,
+                                     padding=1,
+                                     bias=False)
         else:
-            self.conv1x1 = nn.Conv2d(
-                C // 4 * self._steps, C, kernel_size=1, stride=1, padding=0, bias=False)
+            self.conv1x1 = nn.Conv2d(C // 4 * self._steps,
+                                     C,
+                                     kernel_size=1,
+                                     stride=1,
+                                     padding=0,
+                                     bias=False)
 
         self._compile(C, op_names, indices, concat)
 
@@ -903,7 +1048,7 @@ class RFConvNeXtAttention(nn.Module):
 
         states = [t]
 
-        total_step = (1+self._steps) * self._steps // 2
+        total_step = (1 + self._steps) * self._steps // 2
 
         for i in range(total_step):
             h = states[self.indices[i]]
@@ -940,6 +1085,7 @@ class RFConvNeXtAttention(nn.Module):
 
         return node_out
 
+
 class CifarRFConvNeXtBasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride, step=3, genotype=None):
         super(CifarRFConvNeXtBasicBlock, self).__init__()
@@ -951,8 +1097,11 @@ class CifarRFConvNeXtBasicBlock(nn.Module):
         self.bn2 = nn.BatchNorm2d(planes)
         if inplanes != planes:
             self.downsample = nn.Sequential(
-                nn.Conv2d(inplanes, planes, kernel_size=1,
-                          stride=stride, bias=False),
+                nn.Conv2d(inplanes,
+                          planes,
+                          kernel_size=1,
+                          stride=stride,
+                          bias=False),
                 nn.BatchNorm2d(planes),
             )
         else:
@@ -974,9 +1123,12 @@ class CifarRFConvNeXtBasicBlock(nn.Module):
 
         return out
 
-if __name__ == "__main__":
-    g = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0), (
-        'noise', 1), ('avg_pool_5x5', 0), ('noise', 1), ('noise', 2)], normal_concat=range(0, 4))
+
+if __name__ == '__main__':
+    g = Genotype(normal=[('max_pool_3x3', 0), ('max_pool_3x3', 0),
+                         ('noise', 1), ('avg_pool_5x5', 0), ('noise', 1),
+                         ('noise', 2)],
+                 normal_concat=range(0, 4))
 
     # m = CifarRFBasicBlock(16, 8, 1, 3, g)
     # m = CifarRFSABasicBlock(16, 32, 1, step=3, genotype=g)

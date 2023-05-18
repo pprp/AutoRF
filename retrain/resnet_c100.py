@@ -6,34 +6,43 @@ from collections import namedtuple
 
 import torch
 import torch.nn as nn
-from search.utils import DropPath
-from space.operations import *
-from space.spaces import OPS
 from torch.autograd import Variable
 from torch.utils.model_zoo import load_url as load_state_dict_from_url
 from torchvision.models import ResNet
-from utils.utils import drop_path
 
 from retrain.basemodel import *
+from search.utils import DropPath
+from space.operations import *
+from space.spaces import OPS
+from utils.utils import drop_path
 
 
 class InsertResNet(nn.Module):
     '''
-    insert attention module 
-    C C C: 全部是普通卷积 
-    C C T: 最后一个加上Attention 
-    C T T: 两个attention 
+    insert attention module
+    C C C: 全部是普通卷积
+    C C T: 最后一个加上Attention
+    C T T: 两个attention
     T T T: 全attention
     '''
-    def __init__(self, block_list, n_size, num_classes, genotype, dropout=0., PRIMITIVES=None):
+    def __init__(self,
+                 block_list,
+                 n_size,
+                 num_classes,
+                 genotype,
+                 dropout=0.,
+                 PRIMITIVES=None):
         super(InsertResNet, self).__init__()
-        self.inplane = 128 # 16 for cifar10 64 for cifar100 
+        self.inplane = 128  # 16 for cifar10 64 for cifar100
         self.genotype = genotype
         self.dropout = dropout
         self.channel_in = self.inplane
-        self.conv1 = nn.Conv2d(
-            3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.conv1 = nn.Conv2d(3,
+                               self.inplane,
+                               kernel_size=3,
+                               stride=1,
+                               padding=1,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplane)
         self.relu = nn.ReLU()
         self._step = 4
@@ -75,11 +84,13 @@ class InsertResNet(nn.Module):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
-    def _make_layer(self, block, planes, blocks, stride, step, genotype, PRIMITIVES):
+    def _make_layer(self, block, planes, blocks, stride, step, genotype,
+                    PRIMITIVES):
         strides = [stride] + [1] * (blocks - 1)
         self.layers = nn.ModuleList()
         for stride in strides:
-            Block = block(self.inplane, planes, stride, step, genotype, PRIMITIVES)
+            Block = block(self.inplane, planes, stride, step, genotype,
+                          PRIMITIVES)
             self.layers += [Block]
             self.inplane = planes
         return self.layers
@@ -94,7 +105,7 @@ class InsertResNet(nn.Module):
             x = layer(x)
         for i, layer in enumerate(self.layer3):
             x = layer(x)
-        
+
         x = self.avgpool(x)
 
         if self.dropout > 0:
@@ -106,18 +117,19 @@ class InsertResNet(nn.Module):
         return x
 
 
-
-
 class CifarAttentionResNet(nn.Module):
     def __init__(self, block, n_size, num_classes, genotype, dropout=0.):
         super(CifarAttentionResNet, self).__init__()
-        self.inplane = 64 # 16 for cifar10 64 for cifar100 
+        self.inplane = 64  # 16 for cifar10 64 for cifar100
         self.genotype = genotype
         self.dropout = dropout
         self.channel_in = 64
-        self.conv1 = nn.Conv2d(
-            3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.conv1 = nn.Conv2d(3,
+                               self.inplane,
+                               kernel_size=3,
+                               stride=1,
+                               padding=1,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplane)
         self.relu = nn.ReLU()
         self._step = 4
@@ -188,7 +200,6 @@ class CifarAttentionResNet(nn.Module):
         return x
 
 
-
 def resnet20(**kwargs):
     model = CifarAttentionResNet(BasicBlock, 3, **kwargs)
     return model
@@ -213,28 +224,37 @@ def rf_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 3, **kwargs)
     return model
 
+
 def rfbngelu_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFBNGELUBasicBlock, 3, **kwargs)
     return model
+
 
 def rfgelubn_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFGELUBNBasicBlock, 3, **kwargs)
     return model
 
+
 def rf_resnet20_ccc(**kwargs):
-    model = InsertResNet([BasicBlock,BasicBlock,BasicBlock], 3, **kwargs)
+    model = InsertResNet([BasicBlock, BasicBlock, BasicBlock], 3, **kwargs)
     return model
+
 
 def rf_resnet20_cct(**kwargs):
-    model = InsertResNet([BasicBlock,BasicBlock,CifarRFBasicBlock], 3, **kwargs)
+    model = InsertResNet([BasicBlock, BasicBlock, CifarRFBasicBlock], 3,
+                         **kwargs)
     return model
+
 
 def rf_resnet20_ctt(**kwargs):
-    model = InsertResNet([BasicBlock,CifarRFBasicBlock,CifarRFBasicBlock], 3, **kwargs)
+    model = InsertResNet([BasicBlock, CifarRFBasicBlock, CifarRFBasicBlock], 3,
+                         **kwargs)
     return model
 
+
 def rf_resnet20_ttt(**kwargs):
-    model = InsertResNet([CifarRFBasicBlock,CifarRFBasicBlock,CifarRFBasicBlock], 3, **kwargs)
+    model = InsertResNet(
+        [CifarRFBasicBlock, CifarRFBasicBlock, CifarRFBasicBlock], 3, **kwargs)
     return model
 
 
@@ -242,38 +262,50 @@ def rfsa_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFSABasicBlock, 3, **kwargs)
     return model
 
+
 def rfconvnext_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFConvNeXtBasicBlock, 3, **kwargs)
     return model
+
 
 def rf_resnet32(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 5, **kwargs)
     return model
 
+
 def rf_resnet56(**kwargs):
     model = CifarAttentionResNet(CifarRFBasicBlock, 9, **kwargs)
     return model
+
 
 def la_resnet20(**kwargs):
     """Constructs a ResNet-20 model."""
     model = CifarAttentionResNet(CifarAttentionBasicBlock, 3, **kwargs)
     return model
 
-# normal resnet20 
+
+# normal resnet20
+
 
 def resnet20_cbam(**kwargs):
-    model = CifarAttentionResNet(
-        CifarAttentionBasicBlock, 3, cbam=True, **kwargs)
+    model = CifarAttentionResNet(CifarAttentionBasicBlock,
+                                 3,
+                                 cbam=True,
+                                 **kwargs)
     return model
 
 
 def resnet20_spp(**kwargs):
-    model = CifarAttentionResNet(
-        CifarAttentionBasicBlock, 3, spp=True, **kwargs)
+    model = CifarAttentionResNet(CifarAttentionBasicBlock,
+                                 3,
+                                 spp=True,
+                                 **kwargs)
     return model
 
 
 def resnet20_se(**kwargs):
-    model = CifarAttentionResNet(
-        CifarAttentionBasicBlock, 3, se=True, **kwargs)
+    model = CifarAttentionResNet(CifarAttentionBasicBlock,
+                                 3,
+                                 se=True,
+                                 **kwargs)
     return model

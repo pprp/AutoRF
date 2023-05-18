@@ -1,12 +1,11 @@
 import warnings
-from typing import Callable, Any, Optional, List
+from typing import Any, Callable, List, Optional
 
 import torch
-from torch import Tensor
-from torch import nn
-
+from torch import Tensor, nn
 
 from .components import ReceptiveFieldAttention, ReceptiveFieldSelfAttention
+
 
 class ConvNormActivation(torch.nn.Sequential):
     """
@@ -26,7 +25,6 @@ class ConvNormActivation(torch.nn.Sequential):
         bias (bool, optional): Whether to use bias in the convolution layer. By default, biases are included if ``norm_layer is None``.
 
     """
-
     def __init__(
         self,
         in_channels: int,
@@ -35,8 +33,10 @@ class ConvNormActivation(torch.nn.Sequential):
         stride: int = 1,
         padding: Optional[int] = None,
         groups: int = 1,
-        norm_layer: Optional[Callable[..., torch.nn.Module]] = torch.nn.BatchNorm2d,
-        activation_layer: Optional[Callable[..., torch.nn.Module]] = torch.nn.ReLU,
+        norm_layer: Optional[Callable[...,
+                                      torch.nn.Module]] = torch.nn.BatchNorm2d,
+        activation_layer: Optional[Callable[...,
+                                            torch.nn.Module]] = torch.nn.ReLU,
         dilation: int = 1,
         inplace: Optional[bool] = True,
         bias: Optional[bool] = None,
@@ -60,12 +60,15 @@ class ConvNormActivation(torch.nn.Sequential):
         if norm_layer is not None:
             layers.append(norm_layer(out_channels))
         if activation_layer is not None:
-            params = {} if inplace is None else {"inplace": inplace}
+            params = {} if inplace is None else {'inplace': inplace}
             layers.append(activation_layer(**params))
         super().__init__(*layers)
         self.out_channels = out_channels
 
-def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> int:
+
+def _make_divisible(v: float,
+                    divisor: int,
+                    min_value: Optional[int] = None) -> int:
     """
     This function is taken from the original tf repo.
     It ensures that all layers have a channel number that is divisible by 8
@@ -82,7 +85,8 @@ def _make_divisible(v: float, divisor: int, min_value: Optional[int] = None) -> 
 
 
 model_urls = {
-    "mobilenet_v2": "https://download.pytorch.org/models/mobilenet_v2-b0353104.pth",
+    'mobilenet_v2':
+    'https://download.pytorch.org/models/mobilenet_v2-b0353104.pth',
 }
 
 
@@ -90,24 +94,29 @@ model_urls = {
 class _DeprecatedConvBNAct(ConvNormActivation):
     def __init__(self, *args, **kwargs):
         warnings.warn(
-            "The ConvBNReLU/ConvBNActivation classes are deprecated since 0.12 and will be removed in 0.14. "
-            "Use torchvision.ops.misc.ConvNormActivation instead.",
+            'The ConvBNReLU/ConvBNActivation classes are deprecated since 0.12 and will be removed in 0.14. '
+            'Use torchvision.ops.misc.ConvNormActivation instead.',
             FutureWarning,
         )
-        if kwargs.get("norm_layer", None) is None:
-            kwargs["norm_layer"] = nn.BatchNorm2d
-        if kwargs.get("activation_layer", None) is None:
-            kwargs["activation_layer"] = nn.ReLU6
+        if kwargs.get('norm_layer', None) is None:
+            kwargs['norm_layer'] = nn.BatchNorm2d
+        if kwargs.get('activation_layer', None) is None:
+            kwargs['activation_layer'] = nn.ReLU6
         super().__init__(*args, **kwargs)
 
 
 ConvBNReLU = _DeprecatedConvBNAct
 ConvBNActivation = _DeprecatedConvBNAct
 
+
 class InvertedResidual(nn.Module):
     def __init__(
-        self, inp: int, oup: int, stride: int, expand_ratio: int, norm_layer: Optional[Callable[..., nn.Module]] = None
-    ) -> None:
+            self,
+            inp: int,
+            oup: int,
+            stride: int,
+            expand_ratio: int,
+            norm_layer: Optional[Callable[..., nn.Module]] = None) -> None:
         super().__init__()
         self.stride = stride
         assert stride in [1, 2]
@@ -122,24 +131,25 @@ class InvertedResidual(nn.Module):
         if expand_ratio != 1:
             # pw
             layers.append(
-                ConvNormActivation(inp, hidden_dim, kernel_size=1, norm_layer=norm_layer, activation_layer=nn.ReLU6)
-            )
-        layers.extend(
-            [
-                # dw
-                ConvNormActivation(
-                    hidden_dim,
-                    hidden_dim,
-                    stride=stride,
-                    groups=hidden_dim,
-                    norm_layer=norm_layer,
-                    activation_layer=nn.ReLU6,
-                ),
-                # pw-linear
-                nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
-                norm_layer(oup),
-            ]
-        )
+                ConvNormActivation(inp,
+                                   hidden_dim,
+                                   kernel_size=1,
+                                   norm_layer=norm_layer,
+                                   activation_layer=nn.ReLU6))
+        layers.extend([
+            # dw
+            ConvNormActivation(
+                hidden_dim,
+                hidden_dim,
+                stride=stride,
+                groups=hidden_dim,
+                norm_layer=norm_layer,
+                activation_layer=nn.ReLU6,
+            ),
+            # pw-linear
+            nn.Conv2d(hidden_dim, oup, 1, 1, 0, bias=False),
+            norm_layer(oup),
+        ])
         self.conv = nn.Sequential(*layers)
         self.out_channels = oup
         self._is_cn = stride > 1
@@ -150,6 +160,7 @@ class InvertedResidual(nn.Module):
         else:
             return self.conv(x)
 
+
 class MobileNetV2(nn.Module):
     def __init__(
         self,
@@ -157,7 +168,8 @@ class MobileNetV2(nn.Module):
         width_mult: float = 1.0,
         inverted_residual_setting: Optional[List[List[int]]] = None,
         round_nearest: int = 8,
-        attention: Optional[Callable[..., nn.Module]] = ReceptiveFieldAttention,
+        attention: Optional[Callable[...,
+                                     nn.Module]] = ReceptiveFieldAttention,
         block: Optional[Callable[..., nn.Module]] = None,
         norm_layer: Optional[Callable[..., nn.Module]] = None,
         dropout: float = 0.2,
@@ -190,7 +202,7 @@ class MobileNetV2(nn.Module):
         if inverted_residual_setting is None:
             inverted_residual_setting = [
                 # t, c, n, s
-                # expan ratio, channel, repeat number, stride 
+                # expan ratio, channel, repeat number, stride
                 [1, 16, 1, 1],
                 [6, 24, 2, 2],
                 [6, 32, 3, 2],
@@ -201,33 +213,46 @@ class MobileNetV2(nn.Module):
             ]
 
         # only check the first element, assuming user knows t,c,n,s are required
-        if len(inverted_residual_setting) == 0 or len(inverted_residual_setting[0]) != 4:
+        if len(inverted_residual_setting) == 0 or len(
+                inverted_residual_setting[0]) != 4:
             raise ValueError(
-                f"inverted_residual_setting should be non-empty or a 4-element list, got {inverted_residual_setting}"
+                f'inverted_residual_setting should be non-empty or a 4-element list, got {inverted_residual_setting}'
             )
 
         # building first layer
-        input_channel = _make_divisible(input_channel * width_mult, round_nearest)
-        self.last_channel = _make_divisible(last_channel * max(1.0, width_mult), round_nearest)
+        input_channel = _make_divisible(input_channel * width_mult,
+                                        round_nearest)
+        self.last_channel = _make_divisible(
+            last_channel * max(1.0, width_mult), round_nearest)
         features: List[nn.Module] = [
-            ConvNormActivation(3, input_channel, stride=2, norm_layer=norm_layer, activation_layer=nn.ReLU6)
+            ConvNormActivation(3,
+                               input_channel,
+                               stride=2,
+                               norm_layer=norm_layer,
+                               activation_layer=nn.ReLU6)
         ]
         # building inverted residual blocks
         for t, c, n, s in inverted_residual_setting:
             output_channel = _make_divisible(c * width_mult, round_nearest)
             for i in range(n):
                 stride = s if i == 0 else 1
-                features.append(block(input_channel, output_channel, stride, expand_ratio=t, norm_layer=norm_layer))
+                features.append(
+                    block(input_channel,
+                          output_channel,
+                          stride,
+                          expand_ratio=t,
+                          norm_layer=norm_layer))
                 input_channel = output_channel
-            
+
             features.append(attention(output_channel))
 
         # building last several layers
         features.append(
-            ConvNormActivation(
-                input_channel, self.last_channel, kernel_size=1, norm_layer=norm_layer, activation_layer=nn.ReLU6
-            )
-        )
+            ConvNormActivation(input_channel,
+                               self.last_channel,
+                               kernel_size=1,
+                               norm_layer=norm_layer,
+                               activation_layer=nn.ReLU6))
         # make it nn.Sequential
         self.features = nn.ModuleList([*features])
 
@@ -240,7 +265,7 @@ class MobileNetV2(nn.Module):
         # weight initialization
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
-                nn.init.kaiming_normal_(m.weight, mode="fan_out")
+                nn.init.kaiming_normal_(m.weight, mode='fan_out')
                 if m.bias is not None:
                     nn.init.zeros_(m.bias)
             elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
@@ -260,7 +285,8 @@ class MobileNetV2(nn.Module):
         for blocks in self.features:
             # for blocks in layers:
             # print(blocks.__class__.__name__)
-            if isinstance(blocks, ReceptiveFieldAttention) or isinstance(blocks, ReceptiveFieldSelfAttention):
+            if isinstance(blocks, ReceptiveFieldAttention) or isinstance(
+                    blocks, ReceptiveFieldSelfAttention):
                 x = blocks(x, weight)
             else:
                 x = blocks(x)
@@ -284,9 +310,8 @@ def mobilenet_rf_v2(progress: bool = True, **kwargs: Any) -> MobileNetV2:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    model = MobileNetV2(attention=ReceptiveFieldAttention,**kwargs)
+    model = MobileNetV2(attention=ReceptiveFieldAttention, **kwargs)
     return model
-
 
 
 def mobilenet_rfsa_v2(progress: bool = True, **kwargs: Any) -> MobileNetV2:
@@ -298,5 +323,5 @@ def mobilenet_rfsa_v2(progress: bool = True, **kwargs: Any) -> MobileNetV2:
         pretrained (bool): If True, returns a model pre-trained on ImageNet
         progress (bool): If True, displays a progress bar of the download to stderr
     """
-    model = MobileNetV2(attention=ReceptiveFieldSelfAttention,**kwargs)
+    model = MobileNetV2(attention=ReceptiveFieldSelfAttention, **kwargs)
     return model

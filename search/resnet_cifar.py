@@ -1,8 +1,8 @@
-
 import torch.nn as nn
 import torch.nn.functional as F
 
-from .components import CifarRFSABasicBlock, CifarRFBasicBlock
+from .components import CifarRFBasicBlock, CifarRFSABasicBlock
+
 
 class CifarAttentionResNet(nn.Module):
     def __init__(self, block, n_size, num_classes=10, PRIMITIVES=None):
@@ -10,19 +10,37 @@ class CifarAttentionResNet(nn.Module):
         self._steps = 4
         self.inplane = 16
         self.channel_in = 16
-        self.conv1 = nn.Conv2d(
-            3, self.inplane, kernel_size=3, stride=1, padding=1, bias=False
-        )
+        self.conv1 = nn.Conv2d(3,
+                               self.inplane,
+                               kernel_size=3,
+                               stride=1,
+                               padding=1,
+                               bias=False)
         self.bn1 = nn.BatchNorm2d(self.inplane)
         self.relu = nn.ReLU()
         self.layer1 = self._make_layer(
-            block, self.channel_in, blocks=n_size, stride=1, step=self._steps,PRIMITIVES=PRIMITIVES,
+            block,
+            self.channel_in,
+            blocks=n_size,
+            stride=1,
+            step=self._steps,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer2 = self._make_layer(
-            block, self.channel_in * 2, blocks=n_size, stride=2, step=self._steps, PRIMITIVES=PRIMITIVES,
+            block,
+            self.channel_in * 2,
+            blocks=n_size,
+            stride=2,
+            step=self._steps,
+            PRIMITIVES=PRIMITIVES,
         )
         self.layer3 = self._make_layer(
-            block, self.channel_in * 4, blocks=n_size, stride=2, step=self._steps,PRIMITIVES=PRIMITIVES,
+            block,
+            self.channel_in * 4,
+            blocks=n_size,
+            stride=2,
+            step=self._steps,
+            PRIMITIVES=PRIMITIVES,
         )
         self.avgpool = nn.AdaptiveAvgPool2d(1)
         self.fc = nn.Linear(self.channel_in * 4, num_classes)
@@ -60,6 +78,7 @@ class CifarAttentionResNet(nn.Module):
         x = self.fc(x)
 
         return x
+
 
 def rfsa_resnet20(**kwargs):
     model = CifarAttentionResNet(CifarRFSABasicBlock, 3, **kwargs)

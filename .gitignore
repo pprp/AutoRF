@@ -1,9 +1,9 @@
 data/*
 exps/*
-*.pyc 
+*.pyc
 normal*
 *.pyc
-*.out 
+*.out
 slurm-20334.out
 slurm*
 slurm-20032.out

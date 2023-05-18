@@ -1,15 +1,17 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from space.genotypes import Genotype
-from space.operations import *
-from space.spaces import spatial_spaces
 from torch.autograd import Variable
 
 from search.components import *
-# from .resnet_cifar import * 
-from .mobilenetv2 import * 
-from .resnet_imagenet import * 
+from space.genotypes import Genotype
+from space.operations import *
+from space.spaces import spatial_spaces
+
+# from .resnet_cifar import *
+from .mobilenetv2 import *
+from .resnet_imagenet import *
+
 
 class Network(nn.Module):
     def __init__(self, num_classes, model_name, primitives='fullpool'):
@@ -22,7 +24,8 @@ class Network(nn.Module):
         self.PRIMITIVES = spatial_spaces[primitives]
         self._num_classes = num_classes
         self._criterion = nn.CrossEntropyLoss().cuda()
-        self.model = eval(model_name)(num_classes=num_classes, PRIMITIVES=self.PRIMITIVES)
+        self.model = eval(model_name)(num_classes=num_classes,
+                                      PRIMITIVES=self.PRIMITIVES)
         self._steps = 3
         self._multiplier = 4
         self._initialize_alphas()
@@ -46,9 +49,8 @@ class Network(nn.Module):
         k = sum(1 for i in range(self._steps) for n in range(1 + i))
         num_ops = len(self.PRIMITIVES)
 
-        self.alphas_normal = Variable(
-            1e-3 * torch.randn(k, num_ops).cuda(), requires_grad=True
-        )
+        self.alphas_normal = Variable(1e-3 * torch.randn(k, num_ops).cuda(),
+                                      requires_grad=True)
         self._arch_parameters = [
             self.alphas_normal,
         ]
@@ -66,16 +68,13 @@ class Network(nn.Module):
                 W = weights[start:end].copy()
                 edges = sorted(
                     range(i + 1),
-                    key=lambda x: -max(
-                        W[x][k]
-                        for k in range(len(W[x]))
-                        if k != self.PRIMITIVES.index("none")
-                    ),
-                )[: i + 1]
+                    key=lambda x: -max(W[x][k] for k in range(len(W[x]))
+                                       if k != self.PRIMITIVES.index('none')),
+                )[:i + 1]
                 for j in edges:
                     k_best = None
                     for k in range(len(W[j])):
-                        if k != self.PRIMITIVES.index("none"):
+                        if k != self.PRIMITIVES.index('none'):
                             if k_best is None or W[j][k] > W[j][k_best]:
                                 k_best = k
                     gene.append((self.PRIMITIVES[k_best], j))
@@ -83,7 +82,8 @@ class Network(nn.Module):
                 n += 1
             return gene
 
-        gene_normal = _parse(F.softmax(self.alphas_normal, dim=-1).data.cpu().numpy())
+        gene_normal = _parse(
+            F.softmax(self.alphas_normal, dim=-1).data.cpu().numpy())
 
         concat = range(1 + self._steps - self._multiplier, self._steps + 1)
         genotype = Genotype(
